@@ -14,12 +14,23 @@ export class IntegrationsController {
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto): Promise<unknown> {
-    return await this.integrationService.login(loginDto);
+  async login(@Body() loginDto: LoginDto): Promise<{ access_token: string }> {
+    try {
+      return {
+        access_token: await this.integrationService.login(loginDto),
+      };
+    } catch (error) {
+      // NestJS built-in expection layer will handle this
+      throw error;
+    }
   }
 
   @Post('refresh')
   async refresh(@Body() refreshDto: RefreshDto): Promise<unknown> {
-    return await this.integrationService.refresh(refreshDto);
+    try {
+      return await this.integrationService.refresh(refreshDto);
+    } catch (error) {
+      throw error;
+    }
   }
 }

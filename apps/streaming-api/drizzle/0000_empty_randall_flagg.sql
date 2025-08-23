@@ -7,6 +7,8 @@ CREATE TABLE "credentials" (
 	"scope" text NOT NULL,
 	"token_type" text NOT NULL,
 	"expires_in" integer NOT NULL,
+	"expires_at" timestamp NOT NULL,
 	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"updated_at" timestamp NOT NULL,
+	CONSTRAINT "credentials_user_id_provider_unique" UNIQUE("user_id","provider")
 );

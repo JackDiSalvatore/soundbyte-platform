@@ -9,7 +9,7 @@ export async function getCredentials({
 }: {
   userId: string;
   provider: string;
-}) {
+}): Promise<typeof credentialsTable.$inferSelect | undefined> {
   const [res] = await db
     .select()
     .from(credentialsTable)
@@ -20,13 +20,15 @@ export async function getCredentials({
       ),
     );
 
+  console.log('Get credentials for:', res);
+
   return res;
 }
 
-export async function insertCredentials(
+export async function upsertCredentials(
   credentials: CreateProviderCredentialsDto,
-) {
-  const newCredentials = await db
+): Promise<void> {
+  await db
     .insert(credentialsTable)
     .values({
       userId: credentials.userId,
@@ -37,7 +39,21 @@ export async function insertCredentials(
       tokenType: credentials.token.token_type,
       expiresIn: credentials.token.expires_in,
     })
-    .returning();
+    .onConflictDoUpdate({
+      target: [credentialsTable.userId, credentialsTable.provider],
+      set: {
+        accessToken: credentials.token.access_token,
+        refreshToken: credentials.token.refresh_token,
+        scope: credentials.token.scope,
+        tokenType: credentials.token.token_type,
+        expiresAt: new Date(Date.now() + credentials.token.expires_in * 1000),
+        expiresIn: credentials.token.expires_in,
+      },
+    });
 
-  console.log('Inserted user credentials:', newCredentials);
+  console.log(
+    'Upserted user credentials for:',
+    credentials.userId,
+    credentials.provider,
+  );
 }

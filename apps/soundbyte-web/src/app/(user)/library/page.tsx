@@ -98,15 +98,6 @@ export default function Page() {
   useEffect(() => {
     if (!playingTrack) return;
 
-    // axios
-    //   .get("http://localhost:3002/lyrics", {
-    //     params: {
-    //       track: playingTrack.title,
-    //       artist: playingTrack.artist,
-    //     },
-    //   })
-    //   .then((res) => {
-    //   });
     setLyrics("now playing...");
   }, [playingTrack]);
 
@@ -130,7 +121,9 @@ export default function Page() {
   if (isPending) {
     return <div>Loading...</div>;
   }
-  if (userId !== undefined) {
+  if (!accessToken) {
+    return <div>Please connect a streaming provider in the Settings page.</div>;
+  } else if (userId !== undefined) {
     // Debug Log
     console.log("Welcome to the library page!");
     console.log(`You are: ${session?.user.name}`);

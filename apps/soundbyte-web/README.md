@@ -17,3 +17,12 @@ This project uses the BunJs runtime environment.
 - Data Type Validation: Zod
 - ORM: Drizzle
 - OAuth: Better Auth (session)
+
+### Development
+
+Database Migrations
+
+```sh
+npm run db:generate
+npm run db:migrate
+```
