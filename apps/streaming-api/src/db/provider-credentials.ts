@@ -33,8 +33,8 @@ export async function upsertCredentials(
     .values({
       userId: credentials.userId,
       provider: credentials.provider,
-      accessToken: credentials.token.access_token,
-      refreshToken: credentials.token.refresh_token,
+      accessToken: credentials.token.access_token, // TODO: encrypt this
+      refreshToken: credentials.token.refresh_token, // TODO: encrypt this
       scope: credentials.token.scope,
       tokenType: credentials.token.token_type,
       expiresIn: credentials.token.expires_in,
@@ -56,4 +56,23 @@ export async function upsertCredentials(
     credentials.userId,
     credentials.provider,
   );
+}
+
+export async function deleteCredentials({
+  userId,
+  provider,
+}: {
+  userId: string;
+  provider: string;
+}): Promise<void> {
+  await db
+    .delete(credentialsTable)
+    .where(
+      and(
+        eq(credentialsTable.userId, userId),
+        eq(credentialsTable.provider, provider),
+      ),
+    );
+
+  console.log('Deleted credentials for:', userId, provider);
 }

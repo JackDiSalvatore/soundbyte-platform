@@ -2,8 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { LoginDto } from '../dto/login.dto';
 import { RefreshDto } from '../dto/refresh.dto';
 import SpotifyWebApi from 'spotify-web-api-node';
-import { getCredentials, upsertCredentials } from '../db/provider-credentials';
+import {
+  deleteCredentials,
+  getCredentials,
+  upsertCredentials,
+} from '../db/provider-credentials';
 import { z } from 'zod';
+import { LogoutDto } from '../dto/logout.dto';
 
 export const SpotifyError = z.object({
   error: z.string(),
@@ -107,26 +112,12 @@ export class IntegrationService {
   }
 
   /**
-   * Refresh: refresh access token
+   * Logout: removes stream provider credentials from database
    */
-  async refresh(refreshDto: RefreshDto): Promise<unknown> {
-    const { refreshToken } = refreshDto;
-    const spotifyApi = new SpotifyWebApi({
-      redirectUri: process.env.SPOTIFY_REDIRECT_URL!,
-      clientId: process.env.SPOTIFY_CLIENT_ID!,
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
-      refreshToken: refreshToken,
-    });
+  async logout(logoutDto: LogoutDto): Promise<boolean> {
+    const { userId, provider } = logoutDto;
+    await deleteCredentials({ userId, provider });
 
-    const data = await spotifyApi.refreshAccessToken();
-
-    if (data) {
-      return {
-        accessToken: data.body.access_token,
-        expiresIn: data.body.expires_in,
-      };
-    } else {
-      return { error: 'streaming api error' };
-    }
+    return true;
   }
 }

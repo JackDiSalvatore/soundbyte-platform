@@ -3,6 +3,7 @@ import { LoginDto } from '../dto/login.dto';
 import { CreateProviderCredentialsDto } from '../dto/create-provider-credential.dto';
 import { IntegrationService } from '../services/integration.service';
 import { RefreshDto } from '../dto/refresh.dto';
+import { LogoutDto } from '../dto/logout.dto';
 
 @Controller()
 export class IntegrationsController {
@@ -25,11 +26,15 @@ export class IntegrationsController {
     }
   }
 
-  @Post('refresh')
-  async refresh(@Body() refreshDto: RefreshDto): Promise<unknown> {
+  @Post('logout')
+  async logout(@Body() logoutDto: LogoutDto): Promise<{ success: boolean }> {
     try {
-      return await this.integrationService.refresh(refreshDto);
+      await this.integrationService.logout(logoutDto);
+      return {
+        success: true,
+      };
     } catch (error) {
+      // NestJS built-in expection layer will handle this
       throw error;
     }
   }

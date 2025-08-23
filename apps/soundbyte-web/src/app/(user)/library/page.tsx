@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import useStreamingProvider from "@/hooks/use-streaming-provider";
 import { authClient } from "@/lib/auth-client";
 import { Input } from "@/components/ui/input";
@@ -15,9 +14,6 @@ const spotifyApi = new SpotifyWebApi({
 });
 
 export default function Page() {
-  const searchParams = useSearchParams();
-  const code = searchParams.get("code") ?? "";
-
   const {
     data: session,
     isPending, //loading state
@@ -39,7 +35,7 @@ export default function Page() {
   }>();
   const [lyrics, setLyrics] = useState("");
 
-  const accessToken = useStreamingProvider({ code, userId });
+  const accessToken = useStreamingProvider({ code: "", userId });
 
   // Set Access Token
   useEffect(() => {
@@ -128,7 +124,6 @@ export default function Page() {
     console.log("Welcome to the library page!");
     console.log(`You are: ${session?.user.name}`);
     console.log(`User Id: ${userId}`);
-    console.log(`Code: ${code}`);
     console.log(`accessToken: ${accessToken}`);
 
     return (
