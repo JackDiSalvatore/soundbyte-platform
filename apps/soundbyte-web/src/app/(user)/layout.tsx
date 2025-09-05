@@ -10,6 +10,7 @@ import { env } from "@/lib/environment";
 import TrackSearchResult from "@/components/track-search-results";
 import Player from "@/components/player";
 import { useAuth } from "@/context/AuthProvider";
+import SearchInput from "@/components/search-input";
 
 const spotifyApi = new SpotifyWebApi({
   clientId: env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
@@ -93,8 +94,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [playingTrack]);
 
   // Handle Search Songs Input Event
-  const searchSongs = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value ?? "";
+  const searchSongs = (value: string) => {
     setSearch(value);
   };
 
@@ -138,11 +138,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         user={session?.user ?? null}
         className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2"
       />
-      <Input
-        className="w-1/2 m-auto my-2"
-        onChange={searchSongs}
-        placeholder="Search Songs/Artists"
-      />
+
+      <SearchInput searchSongs={searchSongs} />
 
       <div className="flex-grow-1 my-2">
         Songs:
