@@ -131,9 +131,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2" />
-
-      <SearchInput searchSongs={searchSongs} />
+      <Header className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2">
+        <SearchInput searchSongs={searchSongs} />
+      </Header>
 
       <div className="flex-grow-1 my-2">
         Songs:
