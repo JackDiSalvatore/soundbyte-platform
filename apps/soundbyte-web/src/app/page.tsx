@@ -6,15 +6,10 @@ import { redirect } from "next/navigation";
 
 import { motion } from "framer-motion";
 import { Music } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { useAuth } from "@/context/AuthProvider";
 
 export default function Page() {
-  const {
-    data: session,
-    isPending, //loading state
-    error, //error object
-    refetch, //refetch the session
-  } = authClient.useSession();
+  const { session, accessToken, isPending } = useAuth();
 
   if (session) {
     redirect("/library");

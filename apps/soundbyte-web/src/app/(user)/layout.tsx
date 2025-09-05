@@ -3,28 +3,20 @@
 // import Footer from "@/components/footer";
 import Header from "@/components/header";
 
-import useStreamingProvider from "@/hooks/use-streaming-provider";
-import { authClient } from "@/lib/auth-client";
 import { Input } from "@/components/ui/input";
 import SpotifyWebApi from "spotify-web-api-node";
 import { useEffect, useState } from "react";
 import { env } from "@/lib/environment";
 import TrackSearchResult from "@/components/track-search-results";
 import Player from "@/components/player";
+import { useAuth } from "@/context/AuthProvider";
 
 const spotifyApi = new SpotifyWebApi({
   clientId: env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
 });
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const {
-    data: session,
-    isPending, //loading state
-    error, //error object
-    refetch, //refetch the session
-  } = authClient.useSession();
-
-  const userId = session?.user.id;
+  const { session, accessToken, isPending } = useAuth();
 
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<
@@ -37,8 +29,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     albumUrl: string;
   }>();
   const [lyrics, setLyrics] = useState("");
-
-  const accessToken = useStreamingProvider({ code: "", userId });
 
   // Set Access Token
   useEffect(() => {
@@ -122,6 +112,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   if (isPending) {
     return <div>Loading...</div>;
   }
+
   if (!accessToken) {
     return (
       <div>
@@ -133,50 +124,50 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="flex-1">{children}</div>
       </div>
     );
-  } else if (userId !== undefined) {
-    // Debug Log
-    console.log("Welcome to the library page!");
-    console.log(`You are: ${session?.user.name}`);
-    console.log(`User Id: ${userId}`);
-    console.log(`accessToken: ${accessToken}`);
-
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Header
-          user={session?.user ?? null}
-          className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2"
-        />
-        <Input
-          className="w-1/2 m-auto my-2"
-          onChange={searchSongs}
-          placeholder="Search Songs/Artists"
-        />
-
-        <div className="flex-grow-1 my-2">
-          Songs:
-          {searchResults.map((track) => (
-            <TrackSearchResult
-              track={track}
-              key={track.uri}
-              chooseTrack={chooseTrack}
-            />
-          ))}
-          {searchResults.length === 0 && (
-            <div className="text-center" style={{ whiteSpace: "pre" }}>
-              {lyrics}
-            </div>
-          )}
-        </div>
-
-        <main className="flex-1">{children}</main>
-
-        {/* <Footer className="sticky bottom-0 z-50 flex items-baseline justify-between border-t-2 p-2" /> */}
-        <Player
-          className="sticky bottom-0 z-50 flex items-baseline justify-between py-2"
-          accessToken={accessToken ?? ""}
-          trackUri={playingTrack?.uri ?? ""}
-        />
-      </div>
-    );
   }
+
+  // Debug Log
+  console.log("Welcome to the library page!");
+  console.log(`You are: ${session?.user.name}`);
+  console.log(`User Id: ${session?.user.id}`);
+  console.log(`accessToken: ${accessToken}`);
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header
+        user={session?.user ?? null}
+        className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2"
+      />
+      <Input
+        className="w-1/2 m-auto my-2"
+        onChange={searchSongs}
+        placeholder="Search Songs/Artists"
+      />
+
+      <div className="flex-grow-1 my-2">
+        Songs:
+        {searchResults.map((track) => (
+          <TrackSearchResult
+            track={track}
+            key={track.uri}
+            chooseTrack={chooseTrack}
+          />
+        ))}
+        {searchResults.length === 0 && (
+          <div className="text-center" style={{ whiteSpace: "pre" }}>
+            {lyrics}
+          </div>
+        )}
+      </div>
+
+      <main className="flex-1">{children}</main>
+
+      {/* <Footer className="sticky bottom-0 z-50 flex items-baseline justify-between border-t-2 p-2" /> */}
+      <Player
+        className="sticky bottom-0 z-50 flex items-baseline justify-between py-2"
+        accessToken={accessToken ?? ""}
+        trackUri={playingTrack?.uri ?? ""}
+      />
+    </div>
+  );
 }

@@ -35,7 +35,7 @@ export default function Page() {
 
   const userId = session?.user.id;
 
-  const token = useStreamingProvider({ code, userId });
+  const token = useStreamingProvider({ code, userId }); // TODO: maybe make this a direct call
 
   useEffect(() => {
     if (!token) return;
