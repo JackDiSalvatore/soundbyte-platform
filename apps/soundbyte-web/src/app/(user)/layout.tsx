@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import SpotifyWebApi from "spotify-web-api-node";
 import { useEffect, useState } from "react";
 import { env } from "@/lib/environment";
-import TrackSearchResult from "@/components/track-search-results";
 import Player from "@/components/player";
 import { useAuth } from "@/context/AuthProvider";
 import SearchInput from "@/components/search-input";
@@ -103,7 +102,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     title: string;
     uri: string;
     albumUrl: string;
-  }) {
+  }): void {
     setPlayingTrack(track);
     setSearch("");
     setLyrics("");
@@ -123,33 +122,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Debug Log
-  console.log("Welcome to the library page!");
-  console.log(`You are: ${session?.user.name}`);
-  console.log(`User Id: ${session?.user.id}`);
-  console.log(`accessToken: ${accessToken}`);
-
   return (
     <div className="flex flex-col min-h-screen">
       <Header className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2">
-        <SearchInput searchSongs={searchSongs} />
+        <SearchInput
+          searchSongs={searchSongs}
+          searchResults={searchResults}
+          chooseTrack={chooseTrack}
+        />
       </Header>
-
-      <div className="flex-grow-1 my-2">
-        Songs:
-        {searchResults.map((track) => (
-          <TrackSearchResult
-            track={track}
-            key={track.uri}
-            chooseTrack={chooseTrack}
-          />
-        ))}
-        {searchResults.length === 0 && (
-          <div className="text-center" style={{ whiteSpace: "pre" }}>
-            {lyrics}
-          </div>
-        )}
-      </div>
 
       <main className="flex-1">{children}</main>
 
