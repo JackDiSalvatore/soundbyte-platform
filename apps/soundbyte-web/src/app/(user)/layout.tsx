@@ -116,10 +116,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   if (!accessToken) {
     return (
       <div>
-        <Header
-          user={session?.user ?? null}
-          className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2"
-        />
+        <Header className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2" />
         Please connect a streaming provider in the Settings page.
         <div className="flex-1">{children}</div>
       </div>
@@ -134,10 +131,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header
-        user={session?.user ?? null}
-        className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2"
-      />
+      <Header className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2" />
 
       <SearchInput searchSongs={searchSongs} />
 
