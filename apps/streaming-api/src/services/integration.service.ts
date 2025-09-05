@@ -16,14 +16,14 @@ export const SpotifyError = z.object({
 });
 export type SpotifyError = z.infer<typeof SpotifyError>;
 
-export const SpotifyCredentials = z.object({
+export const ProviderCredentials = z.object({
   access_token: z.string(),
-  token_type: z.string(),
+  token_type: z.string().optional(),
   expires_in: z.number(),
   refresh_token: z.string(),
   scope: z.string(),
 });
-export type SpotifyCredentials = z.infer<typeof SpotifyCredentials>;
+export type ProviderCredentials = z.infer<typeof ProviderCredentials>;
 
 @Injectable()
 export class IntegrationService {
@@ -52,18 +52,29 @@ export class IntegrationService {
 
     if (!existingCredentials && code) {
       // User has not logged in yet
+      let creds: ProviderCredentials;
+      let authUrl = '';
 
       // Set up request to convert code into a token
       const params = new URLSearchParams();
       params.append('grant_type', 'authorization_code');
       params.append('code', code);
-      params.append('redirect_uri', process.env.SPOTIFY_REDIRECT_URL!);
-      params.append('client_id', process.env.SPOTIFY_CLIENT_ID!);
-      params.append('client_secret', process.env.SPOTIFY_CLIENT_SECRET!);
+
+      if (provider === 'spotify') {
+        params.append('redirect_uri', process.env.SPOTIFY_REDIRECT_URL!);
+        params.append('client_id', process.env.SPOTIFY_CLIENT_ID!);
+        params.append('client_secret', process.env.SPOTIFY_CLIENT_SECRET!);
+        authUrl = 'https://accounts.spotify.com/api/token';
+      } else if (provider === 'soundcloud') {
+        params.append('redirect_uri', process.env.SOUNDCLOUD_REDIRECT_URL!);
+        params.append('client_id', process.env.SOUNDCLOUD_CLIENT_ID!);
+        params.append('client_secret', process.env.SOUNDCLOUD_CLIENT_SECRET!);
+        authUrl = 'https://secure.soundcloud.com/oauth/token';
+      }
 
       // Convert code to token
-      console.log(`Fetching Spotify Token...`);
-      const spotifyRes = await fetch('https://accounts.spotify.com/api/token', {
+      console.log(`Fetching Auth Token...`);
+      const res = await fetch(authUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -71,13 +82,14 @@ export class IntegrationService {
         body: params.toString(),
       });
 
-      const data = await spotifyRes.json(); // TODO: validate data
+      const data = await res.json();
 
-      if (!spotifyRes.ok) {
-        console.error('Failed to get Spotify Token', data);
-        throw new Error(spotifyRes.statusText);
+      if (!res.ok) {
+        console.error('Failed to get Provider Auth Token', data);
+        throw new Error(res.statusText);
       }
-      const creds = SpotifyCredentials.parse(data);
+
+      creds = ProviderCredentials.parse(data);
       console.log(`raw credentials:`, creds);
 
       // Save `refresh_token`, `expires_in`, etc. to the database
@@ -85,7 +97,13 @@ export class IntegrationService {
       await upsertCredentials({
         userId,
         provider,
-        token: creds,
+        token: {
+          access_token: creds.access_token,
+          refresh_token: creds.refresh_token,
+          expires_in: creds.expires_in,
+          scope: creds.scope,
+          token_type: creds.token_type ?? '',
+        },
       });
 
       return creds.access_token;

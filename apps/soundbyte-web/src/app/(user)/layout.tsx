@@ -10,6 +10,7 @@ import { env } from "@/lib/environment";
 import Player from "@/components/player";
 import { useAuth } from "@/context/AuthProvider";
 import SearchInput from "@/components/search-input";
+import { SpotifySearchResult, SpotifyTrack } from "@/types/types";
 
 const spotifyApi = new SpotifyWebApi({
   clientId: env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
@@ -19,16 +20,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { session, accessToken, isPending } = useAuth();
 
   const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<
-    { artist: string; title: string; uri: string; albumUrl: string }[]
-  >([]);
-  const [playingTrack, setPlayingTrack] = useState<{
-    artist: string;
-    title: string;
-    uri: string;
-    albumUrl: string;
-  }>();
-  const [lyrics, setLyrics] = useState("");
+  const [searchResults, setSearchResults] = useState<SpotifySearchResult[]>([]);
+  const [playingTrack, setPlayingTrack] = useState<SpotifyTrack | undefined>(
+    undefined
+  );
 
   // Set Access Token
   useEffect(() => {
@@ -89,7 +84,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!playingTrack) return;
 
-    setLyrics("now playing...");
+    // No playing
   }, [playingTrack]);
 
   // Handle Search Songs Input Event
@@ -105,7 +100,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }): void {
     setPlayingTrack(track);
     setSearch("");
-    setLyrics("");
   }
 
   if (isPending) {

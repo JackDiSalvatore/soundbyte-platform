@@ -8,23 +8,21 @@ import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!;
-const redirectUri = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URL!;
+const spotifyClientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!;
+const spotifyRedirectUrl = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URL!;
+
+const soundcloudConfig = {
+  clientId: process.env.NEXT_PUBLIC_SOUNDCLOUD_CLIENT_ID,
+  redirectUrl: process.env.NEXT_PUBLIC_SOUNDCLOUD_REDIRECT_URL,
+  codeChallenge: "QlWSrk2E-UzBkTySNXX6oFSIuk8qun-EfSqil-5ix0A", // PKCE
+  state: "randomstatestring", // random string
+};
 
 export default function Page() {
   const searchParams = useSearchParams();
   const code = searchParams.get("code") ?? "";
 
   const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
-
-  async function disconnectSpotify() {
-    const res = await axios.post(`${env.NEXT_PUBLIC_STREAMING_API}/logout`, {
-      provider: "spotify",
-      userId,
-    });
-
-    setAccessToken(undefined);
-  }
 
   const {
     data: session,
@@ -36,17 +34,31 @@ export default function Page() {
   const userId = session?.user.id;
 
   const token = useStreamingProvider({ code, userId }); // TODO: maybe make this a direct call
-
   useEffect(() => {
     if (!token) return;
 
     setAccessToken(token);
   }, [token]);
 
-  console.log("SPOTIFY_CLIENT_ID:", clientId);
-  console.log("accessToken:", accessToken);
+  const spotifyAuthLink = `https://accounts.spotify.com/authorize?client_id=${spotifyClientId}&response_type=code&redirect_uri=${spotifyRedirectUrl}&scope=streaming%20user-read-email%20user-read-private%20user-library-read%20user-library-modify%20user-read-playback-state%20user-modify-playback-state`;
 
-  const authLink = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=streaming%20user-read-email%20user-read-private%20user-library-read%20user-library-modify%20user-read-playback-state%20user-modify-playback-state`;
+  const soundcloudAuthLink =
+    "https://secure.soundcloud.com/authorize" +
+    `?client_id=${soundcloudConfig.clientId}` +
+    `&redirect_uri=${soundcloudConfig.redirectUrl}` +
+    `&response_type=code` +
+    `&code_challenge=${soundcloudConfig.codeChallenge}` +
+    `&code_challenge_method=S256` +
+    `&state=${soundcloudConfig.state}`; // CSRF Protection
+
+  async function disconnectSpotify() {
+    const res = await axios.post(`${env.NEXT_PUBLIC_STREAMING_API}/logout`, {
+      provider: "spotify",
+      userId: session?.user.id,
+    });
+
+    setAccessToken(undefined);
+  }
 
   return (
     <main className="flex flex-col m-2">
@@ -56,22 +68,22 @@ export default function Page() {
         {!accessToken && (
           <div>
             <Button className="w-1/2 bg-green-500 hover:bg-green-300 text-black py-2 px-4 rounded">
-              <a href={authLink}>Connect Spotify</a>
+              <a href={spotifyAuthLink}>Connect Spotify</a>
             </Button>
           </div>
         )}
         {accessToken && (
           <Button
-            className="w-1/2 bg-gray-500 hover:bg-gray-300 text-green-500 py-2 px-4 rounded"
+            className="w-1/2 bg-gray-500 text-green-500 hover:bg-gray-300 hover:text-black py-2 px-4 rounded"
             onClick={disconnectSpotify}
           >
             Disconnect Spotify
           </Button>
         )}
 
-        {/* <Button className="w-1/2 bg-amber-500 hover:bg-amber-300 text-black py-2 px-4 rounded">
-          Connect SoundCloud (coming soon...)
-        </Button> */}
+        <Button className="w-1/2 bg-amber-500 hover:bg-amber-300 text-black py-2 px-4 rounded">
+          <a href={soundcloudAuthLink}>Connect SoundCloud</a>
+        </Button>
       </div>
     </main>
   );
