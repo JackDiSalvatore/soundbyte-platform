@@ -40,10 +40,15 @@ export default function Page() {
     setAccessToken(token);
   }, [token]);
 
-  const spotifyAuthLink = `https://accounts.spotify.com/authorize?client_id=${spotifyClientId}&response_type=code&redirect_uri=${spotifyRedirectUrl}&scope=streaming%20user-read-email%20user-read-private%20user-library-read%20user-library-modify%20user-read-playback-state%20user-modify-playback-state`;
+  const spotifyAuthLink =
+    `https://accounts.spotify.com/authorize` +
+    `?client_id=${spotifyClientId}` +
+    `&response_type=code` +
+    `&redirect_uri=${spotifyRedirectUrl}` +
+    `&scope=streaming%20user-read-email%20user-read-private%20user-library-read%20user-library-modify%20user-read-playback-state%20user-modify-playback-state`;
 
   const soundcloudAuthLink =
-    "https://secure.soundcloud.com/authorize" +
+    `https://secure.soundcloud.com/authorize` +
     `?client_id=${soundcloudConfig.clientId}` +
     `&redirect_uri=${soundcloudConfig.redirectUrl}` +
     `&response_type=code` +

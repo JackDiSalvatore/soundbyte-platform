@@ -3,18 +3,29 @@
 // import Footer from "@/components/footer";
 import Header from "@/components/header";
 
-import { Input } from "@/components/ui/input";
-import SpotifyWebApi from "spotify-web-api-node";
 import { useEffect, useState } from "react";
 import { env } from "@/lib/environment";
 import Player from "@/components/player";
 import { useAuth } from "@/context/AuthProvider";
 import SearchInput from "@/components/search-input";
 import { SpotifySearchResult, SpotifyTrack } from "@/types/types";
+import { createStreamingProvider } from "@soundbyte/streaming-provider";
 
-const spotifyApi = new SpotifyWebApi({
+const streamingProviderConfig = {
+  providers: new Map(),
+};
+
+streamingProviderConfig.providers.set("spotify", {
   clientId: env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
+  redirectUri: env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URL,
+  clientSecret: env.NEXT_PUBLIC_SPOTIFY_CLIENT_SECRET,
 });
+
+// streamingProviderConfig.providers.set("soundcloud", {
+//   clientId: env.NEXT_PUBLIC_SOUNDCLOUD_CLIENT_ID,
+//   redirectUri: env.NEXT_PUBLIC_SOUNDCLOUD_REDIRECT_URL,
+//   clientSecret: env.NEXT_PUBLIC_SOUNDCLOUD_CLIENT_SECRET,
+// });
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { session, accessToken, isPending } = useAuth();
@@ -25,55 +36,32 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     undefined
   );
 
-  // Set Access Token
-  useEffect(() => {
-    if (!accessToken) return;
-
-    spotifyApi.setAccessToken(accessToken);
-  }, [accessToken]);
+  const streamingProvider = createStreamingProvider(streamingProviderConfig);
 
   // Set Search
   useEffect(() => {
     if (!search) return setSearchResults([]);
     if (!accessToken) return;
+    if (!streamingProvider) return;
 
     let cancel = false;
 
-    console.log(`using accessToken:`, accessToken);
+    const fetchSearchResults = async () => {
+      const credentials = new Map();
+      credentials.set("spotify", accessToken);
+      credentials.set("soundcloud", "TODO");
 
-    spotifyApi.searchTracks(search).then((res) => {
-      console.log(res.body?.tracks?.items);
+      const searchRes: SpotifySearchResult[] = (await streamingProvider.search({
+        credentials,
+        query: { searchTerm: search },
+      })) as any; // TODO: typing
 
-      if (cancel) return;
-
-      if (res.body?.tracks?.items) {
-        const searchRes = res.body.tracks.items.map((track) => {
-          const smallestAlbumImage = track.album.images.reduce(
-            (smallest, image) => {
-              if (
-                typeof smallest.height === "undefined" ||
-                (typeof image.height !== "undefined" &&
-                  image.height < smallest.height)
-              ) {
-                return image;
-              }
-
-              return smallest;
-            },
-            track.album.images[0]
-          );
-
-          return {
-            artist: track.artists[0].name,
-            title: track.name,
-            uri: track.uri,
-            albumUrl: smallestAlbumImage.url,
-          };
-        });
-
+      if (!cancel) {
         setSearchResults(searchRes);
       }
-    });
+    };
+
+    fetchSearchResults();
 
     return () => {
       cancel = true;

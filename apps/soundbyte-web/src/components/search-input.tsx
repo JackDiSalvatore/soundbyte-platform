@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import React from "react";
 import TrackSearchResult from "./track-search-results";
+import { useRef } from "react";
 
 type SearchInputProps = {
   searchResults: {
@@ -23,9 +24,16 @@ export default function SearchInput({
   searchSongs,
   chooseTrack,
 }: SearchInputProps) {
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value ?? "";
-    searchSongs(value);
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      searchSongs(value);
+    }, 300); // 300ms debounce
   };
 
   return (
