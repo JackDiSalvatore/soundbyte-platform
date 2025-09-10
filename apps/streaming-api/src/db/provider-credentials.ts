@@ -10,6 +10,8 @@ export async function getCredentials({
   userId: string;
   provider: string;
 }): Promise<typeof credentialsTable.$inferSelect | undefined> {
+  console.log('Searching for: ', userId, provider);
+
   const [res] = await db
     .select()
     .from(credentialsTable)

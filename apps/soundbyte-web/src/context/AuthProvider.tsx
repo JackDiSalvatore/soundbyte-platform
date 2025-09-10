@@ -27,7 +27,7 @@ import useStreamingProvider from "@/hooks/use-streaming-provider";
 
 type AuthContextType = {
   session: ReturnType<typeof authClient.useSession>["data"] | null;
-  accessToken: string | null;
+  streamingCredentials: { provider: string; accessToken: string }[] | null;
   isPending: boolean;
   error: unknown;
   refetch: () => void;
@@ -35,20 +35,15 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: {children: React.ReactNode }) {
-  const {
-    data: session,
-    isPending,
-    error,
-    refetch,
-  } = authClient.useSession();
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { data: session, isPending, error, refetch } = authClient.useSession();
 
   const userId = session?.user.id;
-  const accessToken = useStreamingProvider({code: "", userId});
+  const streamingCredentials = useStreamingProvider({ userId });
 
   return (
     <AuthContext.Provider
-      value={{ session, accessToken, isPending, error, refetch }}
+      value={{ session, streamingCredentials, isPending, error, refetch }}
     >
       {children}
     </AuthContext.Provider>

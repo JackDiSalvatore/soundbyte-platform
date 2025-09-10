@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LoginDto } from '../dto/login.dto';
+import { ConnectDto } from '../dto/connect.dto';
 import { RefreshDto } from '../dto/refresh.dto';
 import SpotifyWebApi from 'spotify-web-api-node';
 import {
@@ -9,6 +9,7 @@ import {
 } from '../db/provider-credentials';
 import { z } from 'zod';
 import { LogoutDto } from '../dto/logout.dto';
+import { AccessTokenRequestDto } from '../dto/access-token-request.dto';
 
 export const SpotifyError = z.object({
   error: z.string(),
@@ -36,14 +37,15 @@ export class IntegrationService {
   }
 
   /**
-   * Login: convert streaming provider code into an access token
+   * Connect: convert streaming provider code into an access token
    * @param code proivder (spotify) code
    * @param provider provider name (spofity)
    * @param userId authentication user id
    */
-  async login(loginDto: LoginDto): Promise<string> {
-    const { code, provider, userId } = loginDto;
+  async connect(connectDto: ConnectDto): Promise<string> {
+    const { code, provider, userId } = connectDto;
 
+    console.log('provider:', provider);
     console.log('code:', code);
 
     const existingCredentials = await getCredentials({ userId, provider });
@@ -69,14 +71,24 @@ export class IntegrationService {
         params.append('redirect_uri', process.env.SOUNDCLOUD_REDIRECT_URL!);
         params.append('client_id', process.env.SOUNDCLOUD_CLIENT_ID!);
         params.append('client_secret', process.env.SOUNDCLOUD_CLIENT_SECRET!);
+
+        // Sound cloud specific
+        params.append(
+          'code_verifier',
+          'd39b0b56274a072b4f38727943d817936b6e58396c855cb56bffd57a',
+        );
         authUrl = 'https://secure.soundcloud.com/oauth/token';
       }
 
       // Convert code to token
       console.log(`Fetching Auth Token...`);
+      console.log('authUrl: ', authUrl);
+      console.log('params:', JSON.stringify(params));
+
       const res = await fetch(authUrl, {
         method: 'POST',
         headers: {
+          accept: 'application/json; charset=uft-8',
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: params.toString(),
@@ -137,5 +149,51 @@ export class IntegrationService {
     await deleteCredentials({ userId, provider });
 
     return true;
+  }
+
+  async getAccessToken(
+    accessTokenRequest: AccessTokenRequestDto,
+  ): Promise<{ provider: string; accessToken: string }[]> {
+    const { userId, providers } = accessTokenRequest;
+
+    const response: { provider: string; accessToken: string }[] = [];
+
+    for (let provider of providers) {
+      const existing = await getCredentials({ userId, provider });
+
+      if (existing === undefined)
+        throw new Error(`Provider ${provider} not connected`);
+
+      // Update existing credentials
+      if (Date.now() >= existing.expiresAt.getTime()) {
+        const spotifyApi = new SpotifyWebApi({
+          redirectUri: process.env.SPOTIFY_REDIRECT_URL!,
+          clientId: process.env.SPOTIFY_CLIENT_ID!,
+          clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
+          refreshToken: existing.refreshToken,
+        });
+
+        const data = await spotifyApi.refreshAccessToken();
+        const accessToken = data.body.access_token;
+
+        await upsertCredentials({
+          userId,
+          provider,
+          token: {
+            access_token: accessToken,
+            refresh_token: existing.refreshToken,
+            expires_in: existing.expiresIn,
+            scope: existing.scope,
+            token_type: existing.tokenType ?? '',
+          },
+        });
+
+        response.push({ provider, accessToken });
+      } else {
+        response.push({ provider, accessToken: existing.accessToken });
+      }
+    }
+
+    return response;
   }
 }

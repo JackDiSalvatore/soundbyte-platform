@@ -1,9 +1,8 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { LoginDto } from '../dto/login.dto';
-import { CreateProviderCredentialsDto } from '../dto/create-provider-credential.dto';
+import { ConnectDto } from '../dto/connect.dto';
 import { IntegrationService } from '../services/integration.service';
-import { RefreshDto } from '../dto/refresh.dto';
 import { LogoutDto } from '../dto/logout.dto';
+import { AccessTokenRequestDto } from '../dto/access-token-request.dto';
 
 @Controller()
 export class IntegrationsController {
@@ -14,11 +13,13 @@ export class IntegrationsController {
     return this.integrationService.getStreamingServices();
   }
 
-  @Post('login')
-  async login(@Body() loginDto: LoginDto): Promise<{ access_token: string }> {
+  @Post('connect')
+  async connect(
+    @Body() connectDto: ConnectDto,
+  ): Promise<{ access_token: string }> {
     try {
       return {
-        access_token: await this.integrationService.login(loginDto),
+        access_token: await this.integrationService.connect(connectDto),
       };
     } catch (error) {
       // NestJS built-in expection layer will handle this
@@ -33,6 +34,21 @@ export class IntegrationsController {
       return {
         success: true,
       };
+    } catch (error) {
+      // NestJS built-in expection layer will handle this
+      throw error;
+    }
+  }
+
+  @Post('get-access-token')
+  async getAccessToken(
+    @Body() accessTokenRequestDto: AccessTokenRequestDto,
+  ): Promise<{ provider: string; accessToken: string }[]> {
+    try {
+      const res = await this.integrationService.getAccessToken(
+        accessTokenRequestDto,
+      );
+      return res;
     } catch (error) {
       // NestJS built-in expection layer will handle this
       throw error;

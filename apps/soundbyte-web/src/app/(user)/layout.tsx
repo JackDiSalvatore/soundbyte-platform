@@ -28,7 +28,14 @@ streamingProviderConfig.providers.set("spotify", {
 // });
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { session, accessToken, isPending } = useAuth();
+  const { session, streamingCredentials, isPending } = useAuth();
+
+  const [spotifyAccessToken, setSpotifyAccessToken] = useState<string | null>(
+    null
+  );
+  const [soundCloudAccessToken, setSoundCloudAccessToken] = useState<
+    string | null
+  >(null);
 
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<SpotifySearchResult[]>([]);
@@ -38,18 +45,33 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const streamingProvider = createStreamingProvider(streamingProviderConfig);
 
+  useEffect(() => {
+    if (!streamingCredentials) return;
+
+    console.log("Your exisitng credentials are:");
+    console.log(JSON.stringify(streamingCredentials));
+
+    for (let cred of streamingCredentials) {
+      if (cred.provider === "spotify") setSpotifyAccessToken(cred.accessToken);
+      if (cred.provider === "soundcloud")
+        setSoundCloudAccessToken(cred.accessToken);
+    }
+  }, [streamingCredentials]);
+
   // Set Search
   useEffect(() => {
     if (!search) return setSearchResults([]);
-    if (!accessToken) return;
+    if (!streamingCredentials) return;
     if (!streamingProvider) return;
 
     let cancel = false;
 
     const fetchSearchResults = async () => {
       const credentials = new Map();
-      credentials.set("spotify", accessToken);
-      credentials.set("soundcloud", "TODO");
+
+      if (spotifyAccessToken) credentials.set("spotify", spotifyAccessToken);
+      if (soundCloudAccessToken)
+        credentials.set("soundcloud", soundCloudAccessToken);
 
       const searchRes: SpotifySearchResult[] = (await streamingProvider.search({
         credentials,
@@ -66,7 +88,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return () => {
       cancel = true;
     };
-  }, [search, accessToken]);
+  }, [search]);
 
   // Handle playTrack changes
   useEffect(() => {
@@ -94,7 +116,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return <div>Loading...</div>;
   }
 
-  if (!accessToken) {
+  if (!streamingCredentials) {
     return (
       <div>
         <Header className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2" />
@@ -119,7 +141,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* <Footer className="sticky bottom-0 z-50 flex items-baseline justify-between border-t-2 p-2" /> */}
       <Player
         className="sticky bottom-0 z-50 flex items-baseline justify-between py-2"
-        accessToken={accessToken ?? ""}
+        accessToken={spotifyAccessToken ?? ""}
         trackUri={playingTrack?.uri ?? ""}
       />
     </div>
