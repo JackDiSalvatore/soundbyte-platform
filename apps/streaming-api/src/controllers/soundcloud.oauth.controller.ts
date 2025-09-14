@@ -8,16 +8,14 @@ import {
   Query,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { SoundCloudOAuthService } from '../lib/soundcloud-oauth-service';
+import { SoundCloudOAuthService } from '../services/soundcloud-oauth-service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('SoundCloudAuth')
 @Controller('auth/soundcloud')
 export class SoundCloudOAuthController {
   constructor(private readonly soundCloudService: SoundCloudOAuthService) {}
 
-  /**
-   * Initiate OAuth flow - redirect to SoundCloud
-   * GET /auth/soundcloud
-   */
   @Get()
   async initiateAuth(
     @Query('returnTo') returnTo: string,
@@ -25,35 +23,28 @@ export class SoundCloudOAuthController {
     @Res() res: Response,
   ): Promise<void> {
     try {
-      const userId = req.session?.['user'].id;
-
-      console.log('userId: ', userId);
+      const userId = req.session?.['user']?.id;
 
       const { url, state } = this.soundCloudService.buildAuthUrl(
         userId,
         returnTo,
       );
 
-      // Store state in session as additional security measure
       if (!req.session) {
         throw new BadRequestException('Session not available');
       }
 
-      req.session['oauthState'] = state;
+      req.session['soundcloudOauthState'] = state;
 
       res.redirect(url);
     } catch (error) {
-      console.error('OAuth initiation error:', error);
+      console.error('SoundCloud OAuth initiation error:', error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        error: 'Failed to initiate OAuth flow',
+        error: 'Failed to initiate SoundCloud OAuth flow',
       });
     }
   }
 
-  /**
-   * Handle OAuth callback from SoundCloud
-   * GET /auth/soundcloud/callback
-   */
   @Get('callback')
   async handleCallback(
     @Query('code') code: string,
@@ -63,13 +54,9 @@ export class SoundCloudOAuthController {
     @Res() res: Response,
   ): Promise<void> {
     try {
-      // Check for OAuth errors
       if (error) {
-        res.status(HttpStatus.BAD_REQUEST).json({
-          error: 'OAuth authorization failed',
-          details: error,
-        });
-        return;
+        const redirectUrl = this.buildErrorRedirect(error);
+        return res.redirect(redirectUrl);
       }
 
       if (!code || !state) {
@@ -78,7 +65,6 @@ export class SoundCloudOAuthController {
         );
       }
 
-      // Verify state parameter (CSRF protection)
       const storedState = this.soundCloudService.validateOAuthState(state);
       if (!storedState) {
         throw new BadRequestException(
@@ -86,44 +72,69 @@ export class SoundCloudOAuthController {
         );
       }
 
-      // Additional check: verify state matches session
-      if (req.session?.['oauthState'] !== state) {
+      if (req.session?.['soundcloudOauthState'] !== state) {
         throw new BadRequestException(
           'State parameter mismatch - possible CSRF attack',
         );
       }
 
-      // Exchange authorization code for access token
       const tokenResponse = await this.soundCloudService.exchangeCodeForToken(
         code,
         storedState.codeVerifier,
       );
 
       if (!tokenResponse.access_token) {
-        throw new BadRequestException('Failed to obtain access token');
+        throw new BadRequestException(
+          'Failed to obtain SoundCloud access token',
+        );
       }
 
-      // Consume state to prevent reuse
       this.soundCloudService.consumeState(state);
-      delete req.session['oauthState'];
+      delete req.session['soundcloudOauthState'];
 
-      // Store token securely in session
       req.session['soundcloudToken'] = tokenResponse.access_token;
       req.session['soundcloudRefreshToken'] = tokenResponse.refresh_token;
 
-      // Redirect to original URL or default success page
-      const redirectUrl = storedState.originalUrl || '/dashboard';
+      const redirectUrl = this.buildSuccessRedirect(
+        storedState.originalUrl,
+        'soundcloud',
+      );
       res.redirect(redirectUrl);
     } catch (error) {
-      console.error('OAuth callback error:', error);
+      console.error('SoundCloud OAuth callback error:', error);
 
-      if (error instanceof BadRequestException) {
-        res.status(HttpStatus.BAD_REQUEST).json({ error: error.message });
-      } else {
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          error: 'OAuth callback processing failed',
-        });
-      }
+      const redirectUrl =
+        error instanceof BadRequestException
+          ? this.buildErrorRedirect(error.message)
+          : this.buildErrorRedirect('OAuth callback processing failed');
+
+      res.redirect(redirectUrl);
     }
+  }
+
+  private buildSuccessRedirect(
+    originalUrl?: string,
+    provider?: string,
+  ): string {
+    const frontendUrl =
+      process.env.FRONTEND_BASE_URL || 'http://127.0.0.1:3000';
+    const redirectPath = originalUrl || '/settings'; // Default to settings page
+
+    const params = new URLSearchParams({
+      auth: 'success',
+      provider: provider || 'soundcloud',
+    });
+    return `${frontendUrl}${redirectPath}?${params.toString()}`;
+  }
+
+  private buildErrorRedirect(error: string): string {
+    const frontendUrl =
+      process.env.FRONTEND_BASE_URL || 'http://127.0.0.1:3000';
+    const params = new URLSearchParams({
+      auth: 'error',
+      error: error,
+      provider: 'soundcloud',
+    });
+    return `${frontendUrl}/settings?${params.toString()}`;
   }
 }

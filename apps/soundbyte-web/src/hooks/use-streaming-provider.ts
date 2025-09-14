@@ -19,17 +19,18 @@ export default function useStreamingProvider({
   useEffect(() => {
     if (!userId) return;
 
-    axios
-      .post(`${env.NEXT_PUBLIC_STREAMING_API}/get-access-token`, {
-        userId,
-        providers: ["spotify"],
-      })
-      .then((res) => {
-        console.log(`res.data:`, res.data);
-        const access: { provider: string; accessToken: string }[] = res.data;
+    // TODO: add this back in
+    // axios
+    //   .post(`${env.NEXT_PUBLIC_STREAMING_API}/get-access-token`, {
+    //     userId,
+    //     providers: ["spotify"],
+    //   })
+    //   .then((res) => {
+    //     console.log(`res.data:`, res.data);
+    //     const access: { provider: string; accessToken: string }[] = res.data;
 
-        setAccessCred(access);
-      });
+    //     setAccessCred(access);
+    //   });
   }, [userId]);
 
   return accessCred;

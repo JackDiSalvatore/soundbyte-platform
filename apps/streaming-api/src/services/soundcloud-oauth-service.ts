@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OAuthCSRFService } from './oauth-csrf-service';
 import { ConfigService } from '@nestjs/config';
-import { OAuthState } from './oauth-state';
+import { OAuthState, OAuthStateWithPKCE } from '../types/oauth-state';
 
 @Injectable()
 export class SoundCloudOAuthService {
@@ -35,24 +35,33 @@ export class SoundCloudOAuthService {
     userId?: string,
     originalUrl?: string,
   ): { url: string; state: string } {
-    return this.csrfService.buildAuthorizationURL(
-      this.clientId,
-      this.redirectUri,
+    const oauthState = this.csrfService.generateOAuthStateWithPKCE(
+      'soundcloud',
       userId,
       originalUrl,
     );
+    const codeChallenge = this.csrfService.generateCodeChallenge(
+      oauthState.codeVerifier,
+    );
+
+    const params = new URLSearchParams({
+      client_id: this.clientId,
+      redirect_uri: this.redirectUri,
+      response_type: 'code',
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+      state: oauthState.state,
+    });
+
+    const url = `https://secure.soundcloud.com/authorize?${params.toString()}`;
+
+    return { url, state: oauthState.state };
   }
 
-  /**
-   * Validate OAuth state parameter
-   */
-  validateOAuthState(state: string): OAuthState | null {
-    return this.csrfService.validateState(state);
+  validateOAuthState(state: string): OAuthStateWithPKCE | null {
+    return this.csrfService.validateState(state) as OAuthStateWithPKCE;
   }
 
-  /**
-   * Exchange authorization code for access token
-   */
   async exchangeCodeForToken(code: string, codeVerifier: string): Promise<any> {
     const tokenParams = new URLSearchParams({
       grant_type: 'authorization_code',
@@ -78,10 +87,7 @@ export class SoundCloudOAuthService {
     return await response.json();
   }
 
-  /**
-   * Consume state after successful token exchange
-   */
-  consumeState(state: string): OAuthState | null {
-    return this.csrfService.consumeState(state);
+  consumeState(state: string): OAuthStateWithPKCE | null {
+    return this.csrfService.consumeState(state) as OAuthStateWithPKCE;
   }
 }

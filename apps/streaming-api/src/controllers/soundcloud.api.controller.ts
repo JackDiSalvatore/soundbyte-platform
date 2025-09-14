@@ -1,5 +1,7 @@
 import { Controller, Get, Req, UnauthorizedException } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('SoundCloudApi')
 @Controller('api/soundcloud')
 export class SoundCloudApiController {
   constructor() {}

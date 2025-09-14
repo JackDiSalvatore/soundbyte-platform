@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { SoundCloudOAuthModule } from './oauth/soundcloud-oauth.module';
+import { StreamingProviderOAuthModule } from './oauth/streaming-provider-oauth.module';
 
 @Module({
   imports: [
@@ -9,7 +9,13 @@ import { SoundCloudOAuthModule } from './oauth/soundcloud-oauth.module';
       // Optional: Load custom configuration files
       // load: [appConfig, databaseConfig],
     }),
-    SoundCloudOAuthModule,
+    StreamingProviderOAuthModule,
+  ],
+  controllers: [
+    // Any existing app-level controllers you might have
+  ],
+  providers: [
+    // Any existing app-level providers you might have
   ],
 })
 export class AppModule {}

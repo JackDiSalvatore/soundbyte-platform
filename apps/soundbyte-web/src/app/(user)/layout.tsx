@@ -9,23 +9,6 @@ import Player from "@/components/player";
 import { useAuth } from "@/context/AuthProvider";
 import SearchInput from "@/components/search-input";
 import { SpotifySearchResult, SpotifyTrack } from "@/types/types";
-import { createStreamingProvider } from "@soundbyte/streaming-provider";
-
-// const streamingProviderConfig = {
-//   providers: new Map(),
-// };
-
-// streamingProviderConfig.providers.set("spotify", {
-//   clientId: env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
-//   redirectUri: env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URL,
-//   clientSecret: env.NEXT_PUBLIC_SPOTIFY_CLIENT_SECRET,
-// });
-
-// streamingProviderConfig.providers.set("soundcloud", {
-//   clientId: env.NEXT_PUBLIC_SOUNDCLOUD_CLIENT_ID,
-//   redirectUri: env.NEXT_PUBLIC_SOUNDCLOUD_REDIRECT_URL,
-//   clientSecret: env.NEXT_PUBLIC_SOUNDCLOUD_CLIENT_SECRET,
-// });
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { session, streamingCredentials, isPending } = useAuth();
@@ -42,8 +25,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [playingTrack, setPlayingTrack] = useState<SpotifyTrack | undefined>(
     undefined
   );
-
-  // const streamingProvider = createStreamingProvider(streamingProviderConfig);
 
   useEffect(() => {
     if (!streamingCredentials) return;
@@ -62,7 +43,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!search) return setSearchResults([]);
     if (!streamingCredentials) return;
-    // if (!streamingProvider) return;
 
     let cancel = false;
 
