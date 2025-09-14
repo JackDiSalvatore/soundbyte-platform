@@ -10,6 +10,7 @@ import {
 import { SpotifyOAuthService } from '../services/spotify-oauth-service';
 import type { Request, Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
+import { upsertCredentials } from '../db/provider-credentials';
 
 @ApiTags('SpotifyAuth')
 @Controller('auth/spotify')
@@ -23,14 +24,13 @@ export class SpotifyOAuthController {
   @Get()
   async initiateAuth(
     @Query('returnTo') returnTo: string,
-    @Req() req: Request & { session: { user: { id: string } } },
+    @Req() req: Request & { session: {} },
     @Res() res: Response,
   ): Promise<void> {
-    console.trace('Initiating Spotify OAuth flow');
+    console.log('Initiating Spotify OAuth flow');
 
     try {
-      const userId = req.session?.['user']?.id;
-
+      const userId = req.query.userId as string;
       console.debug('userId: ', userId);
 
       const { url, state } = this.spotifyService.buildAuthUrl(userId, returnTo);
@@ -61,13 +61,10 @@ export class SpotifyOAuthController {
     @Query('code') code: string,
     @Query('state') state: string,
     @Query('error') error: string,
-    @Req() req: Request & { session: { user: { id: string } } },
+    @Req() req: Request & { session: {} },
     @Res() res: Response,
   ): Promise<void> {
-    console.trace('Handling Spotify OAuth callback');
-
-    console.log(req);
-    console.log('*************************************************');
+    console.log('Handling Spotify OAuth callback');
 
     try {
       if (error) {
@@ -91,6 +88,12 @@ export class SpotifyOAuthController {
         );
       }
 
+      if (!storedState.userId) {
+        throw new BadRequestException('Missing User ID');
+      }
+
+      console.debug('cached storedState: ', storedState);
+
       // Additional check: verify state matches session
       if (req.session?.['spotifyOauthState'] !== state) {
         throw new BadRequestException(
@@ -108,6 +111,19 @@ export class SpotifyOAuthController {
         throw new BadRequestException('Failed to obtain Spotify access token');
       }
 
+      // Persist to DB here
+      await upsertCredentials({
+        userId: storedState.userId,
+        provider: storedState.provider,
+        token: {
+          access_token: tokenResponse.access_token,
+          token_type: tokenResponse.token_type,
+          expires_in: tokenResponse.expires_in,
+          refresh_token: tokenResponse.refresh_token,
+          scope: tokenResponse.scope,
+        },
+      });
+
       // Get user profile to store additional info
       const userProfile = await this.spotifyService.getUserProfile(
         tokenResponse.access_token,
@@ -121,7 +137,7 @@ export class SpotifyOAuthController {
 
       // Store tokens and profile info securely in session
       req.session['spotifyToken'] = tokenResponse.access_token;
-      req.session['spotifyRefreshToken'] = tokenResponse.refresh_token;
+      req.session['spotifyRefreshToken'] = tokenResponse.refresh_token; // Might not need this
       req.session['spotifyProfile'] = {
         id: userProfile.id,
         displayName: userProfile.display_name,
@@ -133,6 +149,8 @@ export class SpotifyOAuthController {
         req.session['spotifyTokenExpires'] =
           Date.now() + tokenResponse.expires_in * 1000;
       }
+
+      console.debug('req.session: ', req.session);
 
       // Redirect to original URL or default success page
       const redirectUrl = this.buildSuccessRedirect(

@@ -19,11 +19,12 @@ export class SoundCloudOAuthController {
   @Get()
   async initiateAuth(
     @Query('returnTo') returnTo: string,
-    @Req() req: Request & { session: { user: { id: string } } },
+    @Req() req: Request & { session: {} },
     @Res() res: Response,
   ): Promise<void> {
     try {
-      const userId = req.session?.['user']?.id;
+      const userId = req.query.userId as string;
+      console.debug('userId: ', userId);
 
       const { url, state } = this.soundCloudService.buildAuthUrl(
         userId,
@@ -50,7 +51,7 @@ export class SoundCloudOAuthController {
     @Query('code') code: string,
     @Query('state') state: string,
     @Query('error') error: string,
-    @Req() req: Request & { session: { user: { id: string } } },
+    @Req() req: Request & { session: {} },
     @Res() res: Response,
   ): Promise<void> {
     try {
@@ -72,6 +73,8 @@ export class SoundCloudOAuthController {
         );
       }
 
+      console.debug('cached storedState: ', storedState);
+
       if (req.session?.['soundcloudOauthState'] !== state) {
         throw new BadRequestException(
           'State parameter mismatch - possible CSRF attack',
@@ -88,6 +91,8 @@ export class SoundCloudOAuthController {
           'Failed to obtain SoundCloud access token',
         );
       }
+
+      // TODO: Persist to DB here
 
       this.soundCloudService.consumeState(state);
       delete req.session['soundcloudOauthState'];

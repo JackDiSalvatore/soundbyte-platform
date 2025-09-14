@@ -40,6 +40,7 @@ export class SoundCloudOAuthService {
       userId,
       originalUrl,
     );
+
     const codeChallenge = this.csrfService.generateCodeChallenge(
       oauthState.codeVerifier,
     );
@@ -50,12 +51,13 @@ export class SoundCloudOAuthService {
       response_type: 'code',
       code_challenge: codeChallenge,
       code_challenge_method: 'S256',
-      state: oauthState.state,
+      state: oauthState.state, // just the random key
     });
 
-    const url = `https://secure.soundcloud.com/authorize?${params.toString()}`;
-
-    return { url, state: oauthState.state };
+    return {
+      url: `https://secure.soundcloud.com/authorize?${params}`,
+      state: oauthState.state,
+    };
   }
 
   validateOAuthState(state: string): OAuthStateWithPKCE | null {

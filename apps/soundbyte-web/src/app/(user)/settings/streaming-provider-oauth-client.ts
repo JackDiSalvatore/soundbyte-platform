@@ -17,6 +17,8 @@ export class StreamingProviderOAuthClient {
       // Option 1: Direct redirect to your NestJS OAuth endpoint
       const params = new URLSearchParams();
       if (returnTo) params.set("returnTo", returnTo);
+      if (!userId) throw new Error("Missing user id");
+      params.set("userId", userId);
 
       window.location.href = `${this.baseUrl}/auth/${provider}?${params.toString()}`;
     } catch (error) {
