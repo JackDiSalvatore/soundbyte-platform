@@ -1,7 +1,8 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ConnectDto } from '../dto/connect.dto';
+import { ConnectProviderCallbackDto } from '../dto/connect-provider-callback.dto';
 import { IntegrationService } from '../services/integration.service';
-import { LogoutDto } from '../dto/logout.dto';
+import { ConnectDto } from '../dto/connect.dto';
+import { DisconnectDto } from '../dto/disconnect.dto';
 import { AccessTokenRequestDto } from '../dto/access-token-request.dto';
 
 @Controller()
@@ -13,13 +14,17 @@ export class IntegrationsController {
     return this.integrationService.getStreamingServices();
   }
 
-  @Post('connect')
+  @Post('connect/userId/:userId/provider/:provider')
   async connect(
+    @Param('userId') userId: string,
+    @Param('provider') provider: string,
     @Body() connectDto: ConnectDto,
-  ): Promise<{ access_token: string }> {
+  ): Promise<{ success: boolean }> {
     try {
+      const res = await this.integrationService.connect(connectDto);
+
       return {
-        access_token: await this.integrationService.connect(connectDto),
+        success: true, // TODO
       };
     } catch (error) {
       // NestJS built-in expection layer will handle this
@@ -27,10 +32,31 @@ export class IntegrationsController {
     }
   }
 
-  @Post('logout')
-  async logout(@Body() logoutDto: LogoutDto): Promise<{ success: boolean }> {
+  @Post('/auth/:provider/callback')
+  async connectProviderCallback(
+    @Param('provider') provider: string,
+    @Body() connectProviderCallbackDto: ConnectProviderCallbackDto,
+  ): Promise<{ access_token: string }> {
     try {
-      await this.integrationService.logout(logoutDto);
+      return {
+        access_token: await this.integrationService.connectProviderCallback(
+          connectProviderCallbackDto,
+        ),
+      };
+    } catch (error) {
+      // NestJS built-in expection layer will handle this
+      throw error;
+    }
+  }
+
+  @Post('disconnect/userId/:userId/provider/:provider')
+  async disconnect(
+    @Param('userId') userId: string,
+    @Param('provider') provider: string,
+    @Body() disconnectDto: DisconnectDto,
+  ): Promise<{ success: boolean }> {
+    try {
+      await this.integrationService.disconnect(disconnectDto);
       return {
         success: true,
       };

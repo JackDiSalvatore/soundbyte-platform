@@ -11,15 +11,15 @@ import SearchInput from "@/components/search-input";
 import { SpotifySearchResult, SpotifyTrack } from "@/types/types";
 import { createStreamingProvider } from "@soundbyte/streaming-provider";
 
-const streamingProviderConfig = {
-  providers: new Map(),
-};
+// const streamingProviderConfig = {
+//   providers: new Map(),
+// };
 
-streamingProviderConfig.providers.set("spotify", {
-  clientId: env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
-  redirectUri: env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URL,
-  clientSecret: env.NEXT_PUBLIC_SPOTIFY_CLIENT_SECRET,
-});
+// streamingProviderConfig.providers.set("spotify", {
+//   clientId: env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
+//   redirectUri: env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URL,
+//   clientSecret: env.NEXT_PUBLIC_SPOTIFY_CLIENT_SECRET,
+// });
 
 // streamingProviderConfig.providers.set("soundcloud", {
 //   clientId: env.NEXT_PUBLIC_SOUNDCLOUD_CLIENT_ID,
@@ -43,7 +43,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     undefined
   );
 
-  const streamingProvider = createStreamingProvider(streamingProviderConfig);
+  // const streamingProvider = createStreamingProvider(streamingProviderConfig);
 
   useEffect(() => {
     if (!streamingCredentials) return;
@@ -62,7 +62,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!search) return setSearchResults([]);
     if (!streamingCredentials) return;
-    if (!streamingProvider) return;
+    // if (!streamingProvider) return;
 
     let cancel = false;
 
@@ -73,10 +73,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       if (soundCloudAccessToken)
         credentials.set("soundcloud", soundCloudAccessToken);
 
-      const searchRes: SpotifySearchResult[] = (await streamingProvider.search({
-        credentials,
-        query: { searchTerm: search },
-      })) as any; // TODO: typing
+      // TODO: make this a backend call!
+
+      // const searchRes: SpotifySearchResult[] = (await streamingProvider.search({
+      //   credentials,
+      //   query: { searchTerm: search },
+      // })) as any; // TODO: typing
+
+      const searchRes: SpotifySearchResult[] = [];
 
       if (!cancel) {
         setSearchResults(searchRes);

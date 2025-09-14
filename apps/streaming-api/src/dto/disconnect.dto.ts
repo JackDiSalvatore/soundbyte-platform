@@ -1,4 +1,4 @@
-export class LogoutDto {
+export class DisconnectDto {
   provider: string;
   userId: string;
 }

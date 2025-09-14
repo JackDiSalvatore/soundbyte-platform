@@ -1,10 +1,15 @@
 import { Module } from '@nestjs/common';
-import { IntegrationsController } from './controllers/integrations.controller';
-import { IntegrationService } from './services/integration.service';
+import { ConfigModule } from '@nestjs/config';
+import { SoundCloudOAuthModule } from './oauth/soundcloud-oauth.module';
 
 @Module({
-  imports: [],
-  controllers: [IntegrationsController],
-  providers: [IntegrationService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes ConfigModule available globally
+      // Optional: Load custom configuration files
+      // load: [appConfig, databaseConfig],
+    }),
+    SoundCloudOAuthModule,
+  ],
 })
 export class AppModule {}
