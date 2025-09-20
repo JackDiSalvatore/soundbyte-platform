@@ -10,6 +10,7 @@ import {
 import type { Request, Response } from 'express';
 import { SoundCloudOAuthService } from '../services/soundcloud-oauth-service';
 import { ApiTags } from '@nestjs/swagger';
+import { upsertCredentials } from '../db/provider-credentials';
 
 @ApiTags('SoundCloudAuth')
 @Controller('auth/soundcloud')
@@ -67,10 +68,15 @@ export class SoundCloudOAuthController {
       }
 
       const storedState = this.soundCloudService.validateOAuthState(state);
+
       if (!storedState) {
         throw new BadRequestException(
           'Invalid or expired state parameter - possible CSRF attack',
         );
+      }
+
+      if (!storedState.userId) {
+        throw new BadRequestException('Missing User ID');
       }
 
       console.debug('cached storedState: ', storedState);
@@ -81,6 +87,7 @@ export class SoundCloudOAuthController {
         );
       }
 
+      // Exchange authorization code for access token
       const tokenResponse = await this.soundCloudService.exchangeCodeForToken(
         code,
         storedState.codeVerifier,
@@ -92,7 +99,18 @@ export class SoundCloudOAuthController {
         );
       }
 
-      // TODO: Persist to DB here
+      // Persist to DB here
+      await upsertCredentials({
+        userId: storedState.userId,
+        provider: storedState.provider,
+        token: {
+          access_token: tokenResponse.access_token,
+          token_type: tokenResponse.token_type,
+          expires_in: tokenResponse.expires_in,
+          refresh_token: tokenResponse.refresh_token,
+          scope: tokenResponse.scope ?? '',
+        },
+      });
 
       this.soundCloudService.consumeState(state);
       delete req.session['soundcloudOauthState'];

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OAuthCSRFService } from './oauth-csrf-service';
 import { ConfigService } from '@nestjs/config';
 import { OAuthState, OAuthStateWithPKCE } from '../types/oauth-state';
+import { SoundCloudTokenResponse } from '../types/SoundCloudTokenResponse';
 
 @Injectable()
 export class SoundCloudOAuthService {
@@ -24,7 +25,7 @@ export class SoundCloudOAuthService {
 
   private get redirectUri(): string {
     const uri = this.configService.get<string>('SOUNDCLOUD_REDIRECT_URI');
-    if (!uri) throw new Error('SOUNDCLOUD_REDIRED_URL is not defined');
+    if (!uri) throw new Error('SOUNDCLOUD_REDIRECT_URI is not defined');
     return uri;
   }
 
@@ -55,7 +56,7 @@ export class SoundCloudOAuthService {
     });
 
     return {
-      url: `https://secure.soundcloud.com/authorize?${params}`,
+      url: `https://secure.soundcloud.com/authorize?${params.toString()}`,
       state: oauthState.state,
     };
   }
@@ -64,7 +65,10 @@ export class SoundCloudOAuthService {
     return this.csrfService.validateState(state) as OAuthStateWithPKCE;
   }
 
-  async exchangeCodeForToken(code: string, codeVerifier: string): Promise<any> {
+  async exchangeCodeForToken(
+    code: string,
+    codeVerifier: string,
+  ): Promise<SoundCloudTokenResponse> {
     const tokenParams = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: this.clientId,

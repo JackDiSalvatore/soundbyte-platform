@@ -7,8 +7,15 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { StreamingProviderOAuthClient } from "./streaming-provider-oauth-client";
 
-// const availableStreamingProviders = ["spotify", "soundcloud"];
-const availableStreamingProviders = ["spotify"];
+const spotifyStyling = "bg-green-500 hover:bg-green-400 text-white";
+const soundCloudStyling = "bg-orange-500 hover:bg-orange-400 text-white";
+
+const providerNameMap: Map<string, string> = new Map();
+
+providerNameMap.set("spotify", "Spotify");
+providerNameMap.set("soundcloud", "SoundCloud");
+
+const availableStreamingProviders = ["spotify", "soundcloud"];
 
 export default function Page() {
   const { session, streamingCredentials, isPending } = useAuth();
@@ -176,10 +183,12 @@ export default function Page() {
               <li key={index}>
                 <Button
                   className={`w-1/2 py-2 px-4 rounded transition-colors ${
-                    isConnected
-                      ? "bg-red-500 hover:bg-red-400 text-white"
-                      : "bg-green-500 hover:bg-green-400 text-white"
-                  } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                    provider === "spotify"
+                      ? spotifyStyling
+                      : provider === "soundcloud"
+                        ? soundCloudStyling
+                        : ""
+                  } ${isConnected ? "opacity-80" : ""} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                   onClick={() => {
                     if (isLoading) return;
 
@@ -197,7 +206,7 @@ export default function Page() {
                       {isConnected ? `Disconnecting...` : `Connecting...`}
                     </>
                   ) : (
-                    `${isConnected ? "Disconnect" : "Connect"} ${provider}`
+                    `${isConnected ? "Disconnect" : "Connect"} ${providerNameMap.get(provider)}`
                   )}
                 </Button>
               </li>
