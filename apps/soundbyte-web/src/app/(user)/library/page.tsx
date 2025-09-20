@@ -70,7 +70,7 @@ export default function Page() {
   }
 
   return (
-    <main className="m-4">
+    <main className="m-8">
       <Profile profile={profile} />
 
       <Tracks tracks={tracks ?? undefined} />

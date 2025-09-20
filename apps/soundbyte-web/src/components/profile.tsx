@@ -29,7 +29,7 @@ export default function Profile({ profile }: Props) {
     );
 
   return (
-    <section className="max-w-3xl mx-auto w-full">
+    <section className="max-w-5xl mx-auto w-full">
       <div className="bg-card/60 backdrop-blur-md border border-border rounded-xl p-6 flex items-start gap-6 shadow-lg">
         {/* Avatar */}
         <div className="flex-shrink-0">
