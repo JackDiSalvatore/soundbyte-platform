@@ -115,13 +115,11 @@ export class SpotifyOAuthController {
       await upsertCredentials({
         userId: storedState.userId,
         provider: storedState.provider,
-        token: {
-          access_token: tokenResponse.access_token,
-          token_type: tokenResponse.token_type,
-          expires_in: tokenResponse.expires_in,
-          refresh_token: tokenResponse.refresh_token,
-          scope: tokenResponse.scope,
-        },
+        accessToken: tokenResponse.access_token,
+        tokenType: tokenResponse.token_type,
+        expiresIn: tokenResponse.expires_in,
+        refreshToken: tokenResponse.refresh_token,
+        scope: tokenResponse.scope,
       });
 
       // Get user profile to store additional info

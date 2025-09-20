@@ -93,6 +93,32 @@ export class SoundCloudOAuthService {
     return await response.json();
   }
 
+  async useRefreshToken(
+    refreshToken: string,
+  ): Promise<SoundCloudTokenResponse> {
+    const tokenParams = new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: this.clientId,
+      client_secret: this.clientSecret,
+      refresh_token: refreshToken,
+    });
+
+    const response = await fetch('https://secure.soundcloud.com/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json; charset=utf-8',
+      },
+      body: tokenParams.toString(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Refresh token request failed: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
+
   consumeState(state: string): OAuthStateWithPKCE | null {
     return this.csrfService.consumeState(state) as OAuthStateWithPKCE;
   }

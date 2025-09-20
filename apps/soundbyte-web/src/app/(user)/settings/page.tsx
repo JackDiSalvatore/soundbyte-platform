@@ -50,22 +50,6 @@ export default function Page() {
     }
   }, []);
 
-  // StreamingCredentials are a side effect state coming from the streaming-provider-api
-  useEffect(() => {
-    if (!streamingCredentials) return;
-
-    const providers: string[] = [];
-
-    console.log("Connected to:");
-
-    for (let cred of streamingCredentials) {
-      console.log(cred.provider);
-      providers.push(cred.provider);
-    }
-
-    setConnectedStreamingProviders(providers);
-  }, [streamingCredentials]);
-
   // Clear notifications after 5 seconds
   useEffect(() => {
     if (notification) {

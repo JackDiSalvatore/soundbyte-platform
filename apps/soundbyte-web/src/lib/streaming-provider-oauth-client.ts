@@ -111,4 +111,27 @@ export class StreamingProviderOAuthClient {
 
     return { success: false };
   }
+
+  /**
+   * Get streaming provider profile info
+   */
+  static async profile({
+    provider,
+    userId,
+  }: {
+    provider: string;
+    userId: string;
+  }): Promise<any> {
+    try {
+      const res = await axios.get(
+        `${this.baseUrl}/api/${provider}/profile/userId/${userId}`
+      );
+      console.log(res.data);
+
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to get users ${provider} profile:`, error);
+      throw error;
+    }
+  }
 }

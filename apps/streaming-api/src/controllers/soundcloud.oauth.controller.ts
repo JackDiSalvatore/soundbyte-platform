@@ -6,16 +6,22 @@ import {
   BadRequestException,
   HttpStatus,
   Query,
+  Param,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { SoundCloudOAuthService } from '../services/soundcloud-oauth-service';
 import { ApiTags } from '@nestjs/swagger';
 import { upsertCredentials } from '../db/provider-credentials';
+import { CredentialService } from '../services/credential-service';
+import { CreateProviderCredentialsDto } from '../dto/create-provider-credential.dto';
 
 @ApiTags('SoundCloudAuth')
 @Controller('auth/soundcloud')
 export class SoundCloudOAuthController {
-  constructor(private readonly soundCloudService: SoundCloudOAuthService) {}
+  constructor(
+    private readonly soundCloudService: SoundCloudOAuthService,
+    private readonly credentialService: CredentialService,
+  ) {}
 
   @Get()
   async initiateAuth(
@@ -103,13 +109,11 @@ export class SoundCloudOAuthController {
       await upsertCredentials({
         userId: storedState.userId,
         provider: storedState.provider,
-        token: {
-          access_token: tokenResponse.access_token,
-          token_type: tokenResponse.token_type,
-          expires_in: tokenResponse.expires_in,
-          refresh_token: tokenResponse.refresh_token,
-          scope: tokenResponse.scope ?? '',
-        },
+        accessToken: tokenResponse.access_token,
+        tokenType: tokenResponse.token_type,
+        expiresIn: tokenResponse.expires_in,
+        refreshToken: tokenResponse.refresh_token,
+        scope: tokenResponse.scope ?? '',
       });
 
       this.soundCloudService.consumeState(state);
@@ -132,6 +136,33 @@ export class SoundCloudOAuthController {
           : this.buildErrorRedirect('OAuth callback processing failed');
 
       res.redirect(redirectUrl);
+    }
+  }
+
+  @Get('/userId/:userId/accessToken')
+  async accessToken(
+    @Param('userId') userId: string,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    try {
+      console.debug('userId: ', userId);
+
+      const credentials = await this.credentialService.getCredentials({
+        userId,
+        provider: 'soundcloud',
+      });
+
+      if (!credentials) {
+        throw new BadRequestException('Credendials not available');
+      }
+
+      return res.json({ accessToken: credentials.accessToken });
+    } catch (error) {
+      console.error('SoundCloud Credentials error:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        error: 'Failed to get SoundCloud credentials',
+      });
     }
   }
 

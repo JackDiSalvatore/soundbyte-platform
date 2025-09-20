@@ -6,7 +6,7 @@ import useStreamingProvider from "@/hooks/use-streaming-provider";
 
 type AuthContextType = {
   session: ReturnType<typeof authClient.useSession>["data"] | null;
-  streamingCredentials: { provider: string; accessToken: string }[] | null;
+  streamingCredentials: { provider: string; accessToken: string } | null;
   isPending: boolean;
   error: unknown;
   refetch: () => void;

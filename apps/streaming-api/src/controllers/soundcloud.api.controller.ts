@@ -1,29 +1,41 @@
-import { Controller, Get, Req, UnauthorizedException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { CredentialService } from '../services/credential-service';
 
 @ApiTags('SoundCloudApi')
 @Controller('api/soundcloud')
 export class SoundCloudApiController {
-  constructor() {}
+  constructor(private readonly credentialService: CredentialService) {}
 
   /**
    * Get user's SoundCloud profile
    * GET /api/soundcloud/profile
    */
-  @Get('profile')
+  @Get('profile/userId/:userId')
   async getProfile(
-    @Req() req: Request & { session: { soundcloudToken: string } },
+    @Param('userId') userId: string,
+    @Req() req: Request,
   ): Promise<any> {
-    const token = req.session?.['soundcloudToken'];
+    const credentials = await this.credentialService.getCredentials({
+      userId,
+      provider: 'soundcloud',
+    });
 
-    if (!token) {
+    if (!credentials) {
       throw new UnauthorizedException('Not authenticated with SoundCloud');
     }
 
     try {
       const response = await fetch('https://api.soundcloud.com/me', {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${credentials.accessToken}`,
         },
       });
 

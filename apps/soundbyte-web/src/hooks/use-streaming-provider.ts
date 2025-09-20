@@ -2,15 +2,27 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { env } from "@/lib/environment";
+
+type CreateProviderCredentialsDto = {
+  userId: string;
+  provider: string; // ex: 'spotify', 'soundcloud'
+  accessToken: string;
+  tokenType: string;
+  expiresIn: number;
+  refreshToken: string;
+  scope: string;
+};
 
 export default function useStreamingProvider({
   userId,
 }: {
   userId?: string;
-}): { provider: string; accessToken: string }[] | null {
-  const [accessCred, setAccessCred] = useState<
-    { provider: string; accessToken: string }[] | null
-  >(null);
+}): { provider: string; accessToken: string } | null {
+  const [accessCred, setAccessCred] = useState<{
+    provider: string;
+    accessToken: string;
+  } | null>(null);
 
   console.log(`userId: ${userId}`);
 
@@ -18,18 +30,23 @@ export default function useStreamingProvider({
   useEffect(() => {
     if (!userId) return;
 
-    // TODO: add this back in
-    // axios
-    //   .post(`${env.NEXT_PUBLIC_STREAMING_API}/get-access-token`, {
-    //     userId,
-    //     providers: ["spotify"],
-    //   })
-    //   .then((res) => {
-    //     console.log(`res.data:`, res.data);
-    //     const access: { provider: string; accessToken: string }[] = res.data;
+    const provider = "soundcloud";
 
-    //     setAccessCred(access);
-    //   });
+    axios
+      .get(
+        `${env.NEXT_PUBLIC_STREAMING_API}/auth/${provider}/userId/${userId}/accessToken`
+      )
+      .then((res) => {
+        console.log(`res:`, res);
+        const data = res as unknown as CreateProviderCredentialsDto;
+
+        const access = {
+          provider,
+          accessToken: data.accessToken,
+        };
+
+        setAccessCred(access);
+      });
   }, [userId]);
 
   return accessCred;
