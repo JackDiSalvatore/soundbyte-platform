@@ -18,7 +18,7 @@ export class SoundCloudApiController {
    * Get user's SoundCloud profile
    * GET /api/soundcloud/profile
    */
-  @Get('profile/userId/:userId')
+  @Get('/userId/:userId/profile')
   async getProfile(
     @Param('userId') userId: string,
     @Req() req: Request,

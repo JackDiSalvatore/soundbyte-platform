@@ -124,7 +124,7 @@ export class StreamingProviderOAuthClient {
   }): Promise<any> {
     try {
       const res = await axios.get(
-        `${this.baseUrl}/api/${provider}/profile/userId/${userId}`
+        `${this.baseUrl}/api/${provider}/userId/${userId}/profile`
       );
       console.log(res.data);
 
