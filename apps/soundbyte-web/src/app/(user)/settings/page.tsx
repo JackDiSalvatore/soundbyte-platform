@@ -7,7 +7,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { StreamingProviderOAuthClient } from "../../../lib/streaming-provider-oauth-client";
 
-const spotifyStyling = "bg-green-500 hover:bg-green-400 text-white";
+// const spotifyStyling = "bg-green-500 hover:bg-green-400 text-white";
 const soundCloudStyling = "bg-orange-500 hover:bg-orange-400 text-white";
 
 const providerNameMap: Map<string, string> = new Map();
@@ -15,7 +15,7 @@ const providerNameMap: Map<string, string> = new Map();
 providerNameMap.set("spotify", "Spotify");
 providerNameMap.set("soundcloud", "SoundCloud");
 
-const availableStreamingProviders = ["spotify", "soundcloud"];
+const availableStreamingProviders = [/*"spotify"*/ "soundcloud"];
 
 export default function Page() {
   const { session, streamingCredentials, isPending } = useAuth();
@@ -28,6 +28,11 @@ export default function Page() {
     type: "success" | "error";
     message: string;
   } | null>(null);
+
+  // Check if streaming provider is already connected
+  useEffect(() => {
+    if (streamingCredentials) setConnectedStreamingProviders(["soundcloud"]);
+  }, [streamingCredentials]);
 
   // Handle OAuth return on component mount
   useEffect(() => {
@@ -120,6 +125,7 @@ export default function Page() {
   }
 
   const isProviderConnected = (provider: string): boolean => {
+    console.log("connectedStreamingProviders: ", connectedStreamingProviders);
     return connectedStreamingProviders?.includes(provider) || false;
   };
 
@@ -166,13 +172,7 @@ export default function Page() {
             return (
               <li key={index}>
                 <Button
-                  className={`w-1/2 py-2 px-4 rounded transition-colors ${
-                    provider === "spotify"
-                      ? spotifyStyling
-                      : provider === "soundcloud"
-                        ? soundCloudStyling
-                        : ""
-                  } ${isConnected ? "opacity-80" : ""} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  className={`w-1/2 py-2 px-4 rounded transition-colors ${!isConnected ? soundCloudStyling : "hover:bg-gray-200 border border-gray-400 bg-white text-gray-800"} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                   onClick={() => {
                     if (isLoading) return;
 

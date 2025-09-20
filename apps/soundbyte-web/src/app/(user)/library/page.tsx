@@ -3,64 +3,19 @@
 import { useAuth } from "@/context/AuthProvider";
 import { StreamingProviderOAuthClient } from "@/lib/streaming-provider-oauth-client";
 import { useEffect, useState } from "react";
+import { SoundCloudProfile } from "@/types/soundcloud-profile";
+import { SoundCloudPlaylistResponse } from "@/types/soundcloud-playlist";
 import Profile from "@/components/profile";
-
-type SoundCloudProfile = {
-  avatar_url: string;
-  id: number;
-  urn: string;
-  kind: string;
-  permalink_url: string;
-  uri: string;
-  username: string;
-  permalink: string;
-  created_at: string;
-  last_modified: string;
-  first_name: string;
-  last_name: string;
-  full_name: string;
-  city: string;
-  description: string;
-  country: string;
-  track_count: number;
-  public_favorites_count: number;
-  reposts_count: number;
-  followers_count: number;
-  followings_count: number;
-  plan: string;
-  myspace_name: null;
-  discogs_name: null;
-  website_title: null;
-  website: null;
-  comments_count: number;
-  online: boolean;
-  likes_count: number;
-  playlist_count: number;
-  subscriptions: [
-    {
-      product: {
-        id: string;
-        name: string;
-      };
-    },
-  ];
-  quota: {
-    unlimited_upload_quota: boolean;
-    upload_seconds_used: number;
-    upload_seconds_left: number;
-  };
-  private_tracks_count: number;
-  private_playlists_count: number;
-  primary_email_confirmed: boolean;
-  locale: string;
-  upload_seconds_left: number;
-};
+import Playlists from "@/components/playlists";
 
 export default function Page() {
   const { session, streamingCredentials, isPending } = useAuth();
   const userId = session?.user.id;
 
   const [profile, setProfile] = useState<SoundCloudProfile>();
+  const [playlists, setPlaylists] = useState<SoundCloudPlaylistResponse | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Handle OAuth return on component mount
@@ -68,6 +23,7 @@ export default function Page() {
     if (!userId) return;
     setIsLoading(true);
 
+    // Get Profile
     StreamingProviderOAuthClient.profile({
       provider: "soundcloud",
       userId,
@@ -75,8 +31,21 @@ export default function Page() {
       const data: SoundCloudProfile = res;
 
       setProfile(data);
-      setIsLoading(false);
     });
+
+    // Get Playlists
+    StreamingProviderOAuthClient.playlists({
+      provider: "soundcloud",
+      userId,
+    }).then((res) => {
+      const data = res as SoundCloudPlaylistResponse;
+      console.log("Playlists:");
+      console.log(data);
+
+      setPlaylists(data);
+    });
+
+    setIsLoading(false);
   }, []);
 
   if (isLoading) {
@@ -92,6 +61,8 @@ export default function Page() {
           No profile found.
         </div>
       )}
+
+      <Playlists playlists={playlists ?? undefined} />
     </main>
   );
 }

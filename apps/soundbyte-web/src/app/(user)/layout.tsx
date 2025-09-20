@@ -86,8 +86,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header className="sticky top-0 z-50 flex items-baseline justify-between border-b-2 p-2">
+    // parent is relative so fixed overlays are positioned relative to viewport as expected
+    <div className="relative min-h-screen">
+      {/* Fixed header overlay */}
+      <Header className="fixed inset-x-0 top-0 z-50 flex items-baseline justify-between border-b-2 p-2 bg-background/90 backdrop-blur">
         <SearchInput
           searchSongs={searchSongs}
           searchResults={searchResults}
@@ -95,11 +97,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         />
       </Header>
 
-      <main className="flex-1">{children}</main>
+      {/* Content area with top + bottom padding equal to header/footer heights to avoid overlap */}
+      <main className="pt-[64px] pb-[64px]">{children}</main>
 
-      <Footer className="sticky bottom-0 z-50 flex items-baseline justify-between border-t-2 p-2" />
+      {/* Fixed footer overlay */}
+      <Footer className="fixed inset-x-0 bottom-0 z-50 flex items-baseline justify-between border-t-2 p-2 bg-background/90 backdrop-blur" />
+
       {/* <Player
-        className="sticky bottom-0 z-50 flex items-baseline justify-between py-2"
+        className="fixed inset-x-0 bottom-0 z-50 flex items-baseline justify-between py-2"
         accessToken={spotifyAccessToken ?? ""}
         trackUri={playingTrack?.uri ?? ""}
       /> */}

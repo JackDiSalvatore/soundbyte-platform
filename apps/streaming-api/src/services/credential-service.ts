@@ -19,7 +19,7 @@ export class CredentialService {
     });
 
     // Check if credentials have expired
-    if (credentials?.expiresAt && credentials?.expiresAt > new Date()) {
+    if (credentials?.expiresAt && credentials?.expiresAt >= new Date()) {
       // Update credentials
       const { access_token, token_type, refresh_token, scope, expires_in } =
         await this.soundCloudService.useRefreshToken(credentials.refreshToken);
