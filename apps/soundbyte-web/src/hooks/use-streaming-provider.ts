@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { env } from "@/lib/environment";
 
 export default function useStreamingProvider({
   userId,

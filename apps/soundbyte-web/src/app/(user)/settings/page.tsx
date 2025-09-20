@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthProvider";
 import { env } from "@/lib/environment";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { StreamingProviderOAuthClient } from "./streaming-provider-oauth-client";
+import { StreamingProviderOAuthClient } from "../../../lib/streaming-provider-oauth-client";
 
 const spotifyStyling = "bg-green-500 hover:bg-green-400 text-white";
 const soundCloudStyling = "bg-orange-500 hover:bg-orange-400 text-white";
