@@ -4,6 +4,7 @@ import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { SoundCloudPlaylist } from "@/types/soundcloud-playlist";
 import Track from "@/components/track";
+import Tracks from "./tracks";
 
 type Props = {
   playlists?: SoundCloudPlaylist[] | null;

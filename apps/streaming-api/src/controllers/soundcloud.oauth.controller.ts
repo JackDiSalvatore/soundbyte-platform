@@ -154,7 +154,8 @@ export class SoundCloudOAuthController {
       });
 
       if (!credentials) {
-        throw new BadRequestException('Credendials not available');
+        // throw new BadRequestException('Credendials not available');
+        return res.json({});
       }
 
       return res.json({ accessToken: credentials.accessToken });

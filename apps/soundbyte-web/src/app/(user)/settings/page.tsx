@@ -169,6 +169,8 @@ export default function Page() {
             const isConnected = isProviderConnected(provider);
             const isLoading = isProviderLoading(provider);
 
+            console.log(`isConnected: ${isConnected}`);
+
             return (
               <li key={index}>
                 <Button

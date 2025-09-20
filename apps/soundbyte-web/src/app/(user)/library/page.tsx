@@ -4,9 +4,13 @@ import { useAuth } from "@/context/AuthProvider";
 import { StreamingProviderOAuthClient } from "@/lib/streaming-provider-oauth-client";
 import { useEffect, useState } from "react";
 import { SoundCloudProfile } from "@/types/soundcloud-profile";
-import { SoundCloudPlaylistResponse } from "@/types/soundcloud-playlist";
+import {
+  SoundCloudPlaylistResponse,
+  SoundCloudTrack,
+} from "@/types/soundcloud-playlist";
 import Profile from "@/components/profile";
 import Playlists from "@/components/playlists";
+import Tracks from "@/components/tracks";
 
 export default function Page() {
   const { session, streamingCredentials, isPending } = useAuth();
@@ -16,6 +20,7 @@ export default function Page() {
   const [playlists, setPlaylists] = useState<SoundCloudPlaylistResponse | null>(
     null
   );
+  const [tracks, setTracks] = useState<SoundCloudTrack[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Handle OAuth return on component mount
@@ -39,10 +44,22 @@ export default function Page() {
       userId,
     }).then((res) => {
       const data = res as SoundCloudPlaylistResponse;
-      console.log("Playlists:");
-      console.log(data);
+      // console.log("Playlists:");
+      // console.log(data);
 
       setPlaylists(data);
+    });
+
+    // Get Tracks
+    StreamingProviderOAuthClient.tracks({
+      provider: "soundcloud",
+      userId,
+    }).then((res) => {
+      const data = res as SoundCloudTrack[];
+      console.log("Tracks:");
+      console.log(data);
+
+      setTracks(data);
     });
 
     setIsLoading(false);
@@ -54,13 +71,9 @@ export default function Page() {
 
   return (
     <main className="m-4">
-      {profile ? (
-        <Profile profile={profile} />
-      ) : (
-        <div className="max-w-3xl mx-auto p-6 text-sm text-muted-foreground">
-          No profile found.
-        </div>
-      )}
+      <Profile profile={profile} />
+
+      <Tracks tracks={tracks ?? undefined} />
 
       <Playlists playlists={playlists ?? undefined} />
     </main>

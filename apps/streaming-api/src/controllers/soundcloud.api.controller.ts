@@ -84,8 +84,44 @@ export class SoundCloudApiController {
 
       return await response.json();
     } catch (error) {
-      console.error('Failed to fetch SoundCloud profile:', error);
-      throw new UnauthorizedException('Failed to fetch profile');
+      console.error('Failed to fetch SoundCloud playlists:', error);
+      throw new UnauthorizedException('Failed to fetch playlists');
+    }
+  }
+
+  /**
+   * Get user's SoundCloud tracks
+   * GET /api/soundcloud/tracks
+   */
+  @Get('/userId/:userId/tracks')
+  async getTacks(
+    @Param('userId') userId: string,
+    @Req() req: Request,
+  ): Promise<any> {
+    const credentials = await this.credentialService.getCredentials({
+      userId,
+      provider: 'soundcloud',
+    });
+
+    if (!credentials) {
+      throw new UnauthorizedException('Not authenticated with SoundCloud');
+    }
+
+    try {
+      const response = await fetch('https://api.soundcloud.com/me/tracks', {
+        headers: {
+          Authorization: `Bearer ${credentials.accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new UnauthorizedException('Invalid SoundCloud token');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to fetch SoundCloud tracks:', error);
+      throw new UnauthorizedException('Failed to fetch tracks');
     }
   }
 
