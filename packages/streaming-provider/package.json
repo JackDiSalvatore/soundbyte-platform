@@ -10,7 +10,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p tsconfig.json",
-    "dev": "tsc -p tsconfig.json --watch",
+    "dev:off": "tsc -p tsconfig.json --watch",
     "prepubishOnly": "npm run build"
   },
   "keywords": [],

@@ -1,95 +1,217 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import useStreamingProvider from "@/hooks/use-streaming-provider";
-import { authClient } from "@/lib/auth-client";
+import { useAuth } from "@/context/AuthProvider";
 import { env } from "@/lib/environment";
 import axios from "axios";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { StreamingProviderOAuthClient } from "../../../lib/streaming-provider-oauth-client";
 
-const spotifyClientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!;
-const spotifyRedirectUrl = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URL!;
+// const spotifyStyling = "bg-green-500 hover:bg-green-400 text-white";
+const soundCloudStyling = "bg-orange-500 hover:bg-orange-400 text-white";
 
-const soundcloudConfig = {
-  clientId: process.env.NEXT_PUBLIC_SOUNDCLOUD_CLIENT_ID,
-  redirectUrl: process.env.NEXT_PUBLIC_SOUNDCLOUD_REDIRECT_URL,
-  codeChallenge: "QlWSrk2E-UzBkTySNXX6oFSIuk8qun-EfSqil-5ix0A", // PKCE
-  state: "randomstatestring", // random string
-};
+const providerNameMap: Map<string, string> = new Map();
+
+providerNameMap.set("spotify", "Spotify");
+providerNameMap.set("soundcloud", "SoundCloud");
+
+const availableStreamingProviders = [/*"spotify"*/ "soundcloud"];
 
 export default function Page() {
-  const searchParams = useSearchParams();
-  const code = searchParams.get("code") ?? "";
-
-  const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
-
-  const {
-    data: session,
-    isPending, //loading state
-    error, //error object
-    refetch, //refetch the session
-  } = authClient.useSession();
-
+  const { session, streamingCredentials, isPending } = useAuth();
   const userId = session?.user.id;
 
-  const token = useStreamingProvider({ code, userId }); // TODO: maybe make this a direct call
+  const [connectedStreamingProviders, setConnectedStreamingProviders] =
+    useState<string[] | null>(null);
+  const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  // Check if streaming provider is already connected
   useEffect(() => {
-    if (!token) return;
+    if (streamingCredentials) setConnectedStreamingProviders(["soundcloud"]);
+  }, [streamingCredentials]);
 
-    setAccessToken(token);
-  }, [token]);
+  // Handle OAuth return on component mount
+  useEffect(() => {
+    const oauthResult = StreamingProviderOAuthClient.handleOAuthReturn();
 
-  const spotifyAuthLink =
-    `https://accounts.spotify.com/authorize` +
-    `?client_id=${spotifyClientId}` +
-    `&response_type=code` +
-    `&redirect_uri=${spotifyRedirectUrl}` +
-    `&scope=streaming%20user-read-email%20user-read-private%20user-library-read%20user-library-modify%20user-read-playback-state%20user-modify-playback-state`;
+    if (oauthResult.success && oauthResult.provider) {
+      setNotification({
+        type: "success",
+        message: `Successfully connected to ${oauthResult.provider}!`,
+      });
 
-  const soundcloudAuthLink =
-    `https://secure.soundcloud.com/authorize` +
-    `?client_id=${soundcloudConfig.clientId}` +
-    `&redirect_uri=${soundcloudConfig.redirectUrl}` +
-    `&response_type=code` +
-    `&code_challenge=${soundcloudConfig.codeChallenge}` +
-    `&code_challenge_method=S256` +
-    `&state=${soundcloudConfig.state}`; // CSRF Protection
+      // Refresh the streaming credentials
+      // This should trigger your AuthProvider to refetch data
+      // window.location.reload(); // Or call your refresh method
+    } else if (oauthResult.error) {
+      setNotification({
+        type: "error",
+        message: `Connection failed: ${oauthResult.error}`,
+      });
+    }
+  }, []);
 
-  async function disconnectSpotify() {
-    const res = await axios.post(`${env.NEXT_PUBLIC_STREAMING_API}/logout`, {
-      provider: "spotify",
-      userId: session?.user.id,
-    });
+  // Clear notifications after 5 seconds
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
-    setAccessToken(undefined);
+  async function connectStreamingProvider(provider: string) {
+    if (!userId) {
+      setNotification({
+        type: "error",
+        message: "Please log in to connect streaming providers",
+      });
+      return;
+    }
+
+    setLoadingProvider(provider);
+
+    try {
+      // Option 1: Direct redirect (simpler)
+      await StreamingProviderOAuthClient.connectProvider(
+        provider,
+        userId,
+        window.location.pathname // Return to current page
+      );
+
+      // Note: User will be redirected, so code below won't execute
+    } catch (error) {
+      console.error("Connection error:", error);
+      setNotification({
+        type: "error",
+        message: `Failed to connect to ${provider}. Please try again.`,
+      });
+      setLoadingProvider(null);
+    }
+  }
+
+  async function disconnectStreamingProvider(provider: string) {
+    if (!userId) return;
+
+    setLoadingProvider(provider);
+
+    try {
+      await StreamingProviderOAuthClient.disconnectProvider(provider, userId);
+
+      setNotification({
+        type: "success",
+        message: `Disconnected from ${provider}`,
+      });
+
+      // Update local state immediately for better UX
+      setConnectedStreamingProviders((prev) =>
+        prev ? prev.filter((p) => p !== provider) : null
+      );
+
+      // Optionally refresh streaming credentials
+      // Your AuthProvider should handle this
+    } catch (error) {
+      console.error("Disconnect error:", error);
+      setNotification({
+        type: "error",
+        message: `Failed to disconnect from ${provider}. Please try again.`,
+      });
+    } finally {
+      setLoadingProvider(null);
+    }
+  }
+
+  const isProviderConnected = (provider: string): boolean => {
+    console.log("connectedStreamingProviders: ", connectedStreamingProviders);
+    return connectedStreamingProviders?.includes(provider) || false;
+  };
+
+  const isProviderLoading = (provider: string): boolean => {
+    return loadingProvider === provider;
+  };
+
+  if (isPending) {
+    return (
+      <main className="flex flex-col m-2">
+        <div className="flex items-center justify-center p-8">
+          <div className="text-gray-500">Loading...</div>
+        </div>
+      </main>
+    );
   }
 
   return (
     <main className="flex flex-col m-2">
-      <h1 className="text-xl font-semibold mb-4">Settings</h1>
+      {/* Notification */}
+      {notification && (
+        <div
+          className={`mb-4 p-3 rounded-md ${
+            notification.type === "success"
+              ? "bg-green-100 text-green-800 border border-green-200"
+              : "bg-red-100 text-red-800 border border-red-200"
+          }`}
+        >
+          {notification.message}
+        </div>
+      )}
+
+      <div className="flex flex-col justify-between gap-2 mb-4">
+        <h1 className="text-xl font-semibold mb-4">Settings</h1>
+        <p>Connect a streaming provider:</p>
+      </div>
 
       <div className="flex flex-col justify-between gap-2">
-        {!accessToken && (
-          <div>
-            <Button className="w-1/2 bg-green-500 hover:bg-green-300 text-black py-2 px-4 rounded">
-              <a href={spotifyAuthLink}>Connect Spotify</a>
-            </Button>
-          </div>
-        )}
-        {accessToken && (
-          <Button
-            className="w-1/2 bg-gray-500 text-green-500 hover:bg-gray-300 hover:text-black py-2 px-4 rounded"
-            onClick={disconnectSpotify}
-          >
-            Disconnect Spotify
-          </Button>
-        )}
+        <ul className="space-y-2">
+          {availableStreamingProviders.map((provider, index) => {
+            const isConnected = isProviderConnected(provider);
+            const isLoading = isProviderLoading(provider);
 
-        <Button className="w-1/2 bg-amber-500 hover:bg-amber-300 text-black py-2 px-4 rounded">
-          <a href={soundcloudAuthLink}>Connect SoundCloud</a>
-        </Button>
+            console.log(`isConnected: ${isConnected}`);
+
+            return (
+              <li key={index}>
+                <Button
+                  className={`w-1/2 py-2 px-4 rounded transition-colors ${!isConnected ? soundCloudStyling : "hover:bg-gray-200 border border-gray-400 bg-white text-gray-800"} ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  onClick={() => {
+                    if (isLoading) return;
+
+                    if (isConnected) {
+                      disconnectStreamingProvider(provider);
+                    } else {
+                      connectStreamingProvider(provider);
+                    }
+                  }}
+                  disabled={isLoading || !userId}
+                >
+                  {isLoading ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      {isConnected ? `Disconnecting...` : `Connecting...`}
+                    </>
+                  ) : (
+                    `${isConnected ? "Disconnect" : "Connect"} ${providerNameMap.get(provider)}`
+                  )}
+                </Button>
+              </li>
+            );
+          })}
+        </ul>
       </div>
+
+      {/* Debug info in development */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="mt-8 p-4 bg-gray-100 rounded-md text-sm">
+          <h3 className="font-semibold mb-2">Debug Info:</h3>
+          <p>User ID: {userId || "Not logged in"}</p>
+          <p>
+            Connected Providers: {JSON.stringify(connectedStreamingProviders)}
+          </p>
+          <p>Loading: {loadingProvider || "None"}</p>
+        </div>
+      )}
     </main>
   );
 }

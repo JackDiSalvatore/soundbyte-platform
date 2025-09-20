@@ -1,9 +1,15 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import { env } from '../lib/environment';
+import { ConfigService } from '@nestjs/config';
+import { config } from 'dotenv';
+
+// Load environment variables
+config();
+
+const configService = new ConfigService();
 
 const pool = new Pool({
-  connectionString: env.DATABASE_URL,
+  connectionString: configService.get<string>('DATABASE_URL'),
 });
 
 export const db = drizzle({ client: pool });

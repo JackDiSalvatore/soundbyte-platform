@@ -10,6 +10,8 @@ export async function getCredentials({
   userId: string;
   provider: string;
 }): Promise<typeof credentialsTable.$inferSelect | undefined> {
+  console.log('Searching for: ', userId, provider);
+
   const [res] = await db
     .select()
     .from(credentialsTable)
@@ -33,21 +35,21 @@ export async function upsertCredentials(
     .values({
       userId: credentials.userId,
       provider: credentials.provider,
-      accessToken: credentials.token.access_token, // TODO: encrypt this
-      refreshToken: credentials.token.refresh_token, // TODO: encrypt this
-      scope: credentials.token.scope,
-      tokenType: credentials.token.token_type,
-      expiresIn: credentials.token.expires_in,
+      accessToken: credentials.accessToken, // TODO: encrypt this
+      refreshToken: credentials.refreshToken, // TODO: encrypt this
+      scope: credentials.scope,
+      tokenType: credentials.tokenType,
+      expiresIn: credentials.expiresIn,
     })
     .onConflictDoUpdate({
       target: [credentialsTable.userId, credentialsTable.provider],
       set: {
-        accessToken: credentials.token.access_token,
-        refreshToken: credentials.token.refresh_token,
-        scope: credentials.token.scope,
-        tokenType: credentials.token.token_type,
-        expiresAt: new Date(Date.now() + credentials.token.expires_in * 1000),
-        expiresIn: credentials.token.expires_in,
+        accessToken: credentials.accessToken,
+        refreshToken: credentials.refreshToken,
+        scope: credentials.scope,
+        tokenType: credentials.tokenType,
+        expiresAt: new Date(Date.now() + credentials.expiresIn * 1000),
+        expiresIn: credentials.expiresIn,
       },
     });
 
