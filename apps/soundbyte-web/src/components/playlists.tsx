@@ -4,13 +4,22 @@ import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { SoundCloudPlaylist } from "@/types/soundcloud-playlist";
 import Track from "@/components/track";
-import Tracks from "./tracks";
 
 type Props = {
   playlists?: SoundCloudPlaylist[] | null;
+  title?: string;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  isLoading?: boolean;
 };
 
-export default function Playlists({ playlists }: Props) {
+export default function Playlists({
+  playlists,
+  title,
+  onLoadMore,
+  hasMore,
+  isLoading,
+}: Props) {
   if (!playlists || playlists.length === 0) {
     return (
       <section className="max-w-3xl mx-auto mt-6">
@@ -21,9 +30,11 @@ export default function Playlists({ playlists }: Props) {
     );
   }
 
+  console.log(`hasMore: ${hasMore}`);
+
   return (
     <section className="max-w-5xl mx-auto mt-6">
-      <h3 className="text-lg font-semibold mb-4">Playlists</h3>
+      <h3 className="text-lg font-semibold mb-4">{title ?? "Playlists"}</h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {playlists.map((pl) => (
@@ -66,22 +77,33 @@ export default function Playlists({ playlists }: Props) {
                 </div>
 
                 {/* Tracks list */}
-                <div className="mt-3 space-y-1">
+                {/* <div className="mt-3 space-y-1">
                   {(pl.tracks ?? []).slice(0, 8).map((t) => (
                     <Track key={t.id ?? t.uri} track={t} />
                   ))}
 
                   {pl.tracks && pl.tracks.length > 8 && (
                     <div className="text-xs text-primary mt-1">
-                      Show all {pl.tracks.length} tracks (TODO)
+                      Show all {pl.tracks.length} tracks
                     </div>
                   )}
-                </div>
+                </div> */}
               </div>
             </div>
           </article>
         ))}
       </div>
+      {/* {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={onLoadMore}
+            disabled={isLoading}
+            className="px-4 py-2 bg-primary text-white rounded-lg shadow disabled:opacity-50"
+          >
+            {isLoading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )} */}
     </section>
   );
 }

@@ -4,9 +4,9 @@ import Track from "./track";
 type Props = {
   tracks?: SoundCloudTrack[] | null;
   title?: string;
-  onLoadMore?: () => void; // new
-  hasMore?: boolean; // new
-  isLoading?: boolean; // new
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  isLoading?: boolean;
 };
 
 export default function Tracks({
