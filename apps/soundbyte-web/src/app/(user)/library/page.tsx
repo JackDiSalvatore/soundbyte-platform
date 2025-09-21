@@ -25,64 +25,127 @@ export default function Page() {
   const [likedTracks, setLikedTracks] = useState<SoundCloudTrack[] | null>(
     null
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Handle OAuth return on component mount
+  const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(false);
+  const [isLoadingPlaylists, setIsLoadingPlaylists] = useState<boolean>(false);
+  const [isLoadingTracks, setIsLoadingTracks] = useState<boolean>(false);
+  const [isLoadingLikes, setIsLoadingLikes] = useState<boolean>(false);
+
+  // Fetch profile on mount or when userId changes
   useEffect(() => {
     if (!userId) return;
-    setIsLoading(true);
+    let mounted = true;
+    setIsLoadingProfile(true);
 
-    // Get Profile
-    StreamingProviderOAuthClient.profile({
-      provider: "soundcloud",
-      userId,
-    }).then((res) => {
-      const data: SoundCloudProfile = res;
+    (async () => {
+      try {
+        const res = await StreamingProviderOAuthClient.profile({
+          provider: "soundcloud",
+          userId,
+        });
 
-      setProfile(data);
-    });
+        if (!mounted) return;
+        setProfile(res as SoundCloudProfile);
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      } finally {
+        if (mounted) setIsLoadingProfile(false);
+      }
+    })();
 
-    // Get Playlists
-    StreamingProviderOAuthClient.playlists({
-      provider: "soundcloud",
-      userId,
-    }).then((res) => {
-      const data =
-        res as SoundCloudPaginatedResponse<SoundCloudPlaylistResponse>;
-      // console.log("Playlists:");
-      // console.log(data);
+    return () => {
+      mounted = false;
+    };
+  }, [userId]);
 
-      setPlaylists(data.collection);
-    });
+  // Fetch playlists when userId, playlistsPage or playlistsLimit change
+  useEffect(() => {
+    if (!userId) return;
+    let mounted = true;
+    setIsLoadingPlaylists(true);
 
-    // Get Tracks
-    StreamingProviderOAuthClient.tracks({
-      provider: "soundcloud",
-      userId,
-    }).then((res) => {
-      const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
-      // console.log("Tracks:");
-      // console.log(data);
+    (async () => {
+      try {
+        const res = await StreamingProviderOAuthClient.playlists({
+          provider: "soundcloud",
+          userId,
+        });
 
-      setTracks(data.collection);
-    });
+        if (!mounted) return;
+        const data =
+          res as SoundCloudPaginatedResponse<SoundCloudPlaylistResponse>;
+        setPlaylists(data.collection);
+      } catch (err) {
+        console.error("Failed to load playlists:", err);
+      } finally {
+        if (mounted) setIsLoadingPlaylists(false);
+      }
+    })();
 
-    // Get Liked Tracks
-    StreamingProviderOAuthClient.likedTracks({
-      provider: "soundcloud",
-      userId,
-    }).then((res) => {
-      const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
-      // console.log("Liked Tracks:");
-      // console.log(data);
+    return () => {
+      mounted = false;
+    };
+  }, [userId]);
 
-      setLikedTracks(data.collection);
-    });
+  // Fetch tracks when userId, tracksPage or tracksLimit change
+  useEffect(() => {
+    if (!userId) return;
+    let mounted = true;
+    setIsLoadingTracks(true);
 
-    setIsLoading(false);
-  }, []);
+    (async () => {
+      try {
+        const res = await StreamingProviderOAuthClient.tracks({
+          provider: "soundcloud",
+          userId,
+        });
 
-  if (isLoading) {
+        if (!mounted) return;
+        const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
+        setTracks(data.collection);
+      } catch (err) {
+        console.error("Failed to load tracks:", err);
+      } finally {
+        if (mounted) setIsLoadingTracks(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [userId]);
+
+  // Fetch liked tracks when userId, likedTracksPage or likedTracksLimit change
+  useEffect(() => {
+    if (!userId) return;
+    let mounted = true;
+    setIsLoadingLikes(true);
+
+    (async () => {
+      try {
+        const res = await StreamingProviderOAuthClient.likedTracks({
+          provider: "soundcloud",
+          userId,
+        });
+
+        if (!mounted) return;
+        const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
+        setLikedTracks(data.collection);
+      } catch (err) {
+        console.error("Failed to load liked tracks:", err);
+      } finally {
+        if (mounted) setIsLoadingLikes(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [userId]);
+
+  const anyLoading =
+    isLoadingProfile || isLoadingPlaylists || isLoadingTracks || isLoadingLikes;
+  if (anyLoading) {
     return <>Loading...</>;
   }
 
