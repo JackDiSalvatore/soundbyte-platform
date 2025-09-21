@@ -4,11 +4,12 @@ import Footer from "@/components/footer";
 import Header from "@/components/header";
 
 import { useEffect, useState } from "react";
-import { env } from "@/lib/environment";
-import Player from "@/components/player";
+// import Player from "@/components/player";
 import { useAuth } from "@/context/AuthProvider";
 import SearchInput from "@/components/search-input";
-import { SpotifySearchResult, SpotifyTrack } from "@/types/types";
+import { StreamingProviderOAuthClient } from "@/lib/streaming-provider-oauth-client";
+import { SoundCloudPaginatedResponse } from "@/types/soundcloud-paginated-response";
+import { SoundCloudTrack } from "@/types/soundcloud-playlist";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { session, streamingCredentials, isPending } = useAuth();
@@ -21,8 +22,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   >(null);
 
   const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<SpotifySearchResult[]>([]);
-  const [playingTrack, setPlayingTrack] = useState<SpotifyTrack | undefined>(
+  const [searchResults, setSearchResults] = useState<SoundCloudTrack[]>([]);
+  const [playingTrack, setPlayingTrack] = useState<SoundCloudTrack | undefined>(
     undefined
   );
 
@@ -39,17 +40,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!search) return setSearchResults([]);
     if (!streamingCredentials) return;
+    if (!session) return;
 
     let cancel = false;
 
     const fetchSearchResults = async () => {
       // TODO: call the backend
+      StreamingProviderOAuthClient.searchTracks({
+        provider: "soundcloud",
+        userId: session.user.id,
+        searchTerm: search,
+      }).then((res) => {
+        const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
+        console.log("Search Result:");
+        console.log(data);
 
-      const searchRes: SpotifySearchResult[] = [];
+        // const searchRes: SpotifySearchResult[] = [];
 
-      if (!cancel) {
-        setSearchResults(searchRes);
-      }
+        if (!cancel) {
+          setSearchResults(data.collection);
+        }
+      });
     };
 
     fetchSearchResults();
@@ -71,12 +82,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     setSearch(value);
   };
 
-  function chooseTrack(track: {
-    artist: string;
-    title: string;
-    uri: string;
-    albumUrl: string;
-  }): void {
+  function chooseTrack(track: SoundCloudTrack): void {
     setPlayingTrack(track);
     setSearch("");
   }

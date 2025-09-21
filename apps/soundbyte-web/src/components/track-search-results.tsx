@@ -1,14 +1,11 @@
+import { SoundCloudTrack } from "@/types/soundcloud-playlist";
+
 export default function TrackSearchResult({
   track,
   chooseTrack,
 }: {
-  track: { artist: string; title: string; uri: string; albumUrl: string };
-  chooseTrack: (track: {
-    artist: string;
-    title: string;
-    uri: string;
-    albumUrl: string;
-  }) => void;
+  track: SoundCloudTrack;
+  chooseTrack: (track: SoundCloudTrack) => void;
 }) {
   function handlePlay() {
     chooseTrack(track);
@@ -21,13 +18,13 @@ export default function TrackSearchResult({
       onClick={handlePlay}
     >
       <img
-        src={track.albumUrl}
+        src={track.artwork_url ?? ""}
         alt={`${track.title} album cover`}
         style={{ width: 50, height: 50 }}
       />
       <div className="ml-2">
         <div>{track.title}</div>
-        <div>{track.artist}</div>
+        <div>{track.user.username}</div>
       </div>
     </div>
   );

@@ -2,21 +2,12 @@ import { Input } from "@/components/ui/input";
 import React from "react";
 import TrackSearchResult from "./track-search-results";
 import { useRef } from "react";
+import { SoundCloudTrack } from "@/types/soundcloud-playlist";
 
 type SearchInputProps = {
-  searchResults: {
-    artist: string;
-    title: string;
-    uri: string;
-    albumUrl: string;
-  }[];
+  searchResults: SoundCloudTrack[];
   searchSongs: (value: string) => void;
-  chooseTrack: (track: {
-    artist: string;
-    title: string;
-    uri: string;
-    albumUrl: string;
-  }) => void;
+  chooseTrack: (track: SoundCloudTrack) => void;
 };
 
 export default function SearchInput({
