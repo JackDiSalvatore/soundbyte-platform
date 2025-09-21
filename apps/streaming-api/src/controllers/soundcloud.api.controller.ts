@@ -69,8 +69,10 @@ export class SoundCloudApiController {
     }
 
     try {
+      const limit = 100;
+
       const response = await fetch(
-        'https://api.soundcloud.com/me/playlists?show_tracks=true',
+        `https://api.soundcloud.com/me/playlists?limit=${limit}&linked_partitioning=true&show_tracks=true`,
         {
           headers: {
             Authorization: `Bearer ${credentials.accessToken}`,
@@ -94,7 +96,7 @@ export class SoundCloudApiController {
    * GET /api/soundcloud/tracks
    */
   @Get('/userId/:userId/tracks')
-  async getTacks(
+  async getTracks(
     @Param('userId') userId: string,
     @Req() req: Request,
   ): Promise<any> {
@@ -108,11 +110,16 @@ export class SoundCloudApiController {
     }
 
     try {
-      const response = await fetch('https://api.soundcloud.com/me/tracks', {
-        headers: {
-          Authorization: `Bearer ${credentials.accessToken}`,
+      const limit = 100;
+
+      const response = await fetch(
+        `https://api.soundcloud.com/me/tracks?limit=${limit}&linked_partitioning=true`,
+        {
+          headers: {
+            Authorization: `Bearer ${credentials.accessToken}`,
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         throw new UnauthorizedException('Invalid SoundCloud token');
@@ -122,6 +129,47 @@ export class SoundCloudApiController {
     } catch (error) {
       console.error('Failed to fetch SoundCloud tracks:', error);
       throw new UnauthorizedException('Failed to fetch tracks');
+    }
+  }
+
+  /**
+   * Get user's SoundCloud tracks
+   * GET /api/soundcloud/tracks
+   */
+  @Get('/userId/:userId/tracks/likes')
+  async getLikedTracks(
+    @Param('userId') userId: string,
+    @Req() req: Request,
+  ): Promise<any> {
+    const credentials = await this.credentialService.getCredentials({
+      userId,
+      provider: 'soundcloud',
+    });
+
+    if (!credentials) {
+      throw new UnauthorizedException('Not authenticated with SoundCloud');
+    }
+
+    try {
+      const limit = 10;
+
+      const response = await fetch(
+        `https://api.soundcloud.com/me/likes/tracks?limit=${limit}&linked_partitioning=true`,
+        {
+          headers: {
+            Authorization: `Bearer ${credentials.accessToken}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new UnauthorizedException('Invalid SoundCloud token');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to fetch SoundCloud liked tracks:', error);
+      throw new UnauthorizedException('Failed to fetch liked tracks');
     }
   }
 

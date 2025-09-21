@@ -3,9 +3,10 @@ import Track from "./track";
 
 type Props = {
   tracks?: SoundCloudTrack[] | null;
+  title?: string;
 };
 
-export default function Tracks({ tracks }: Props) {
+export default function Tracks({ tracks, title }: Props) {
   if (!tracks || tracks.length === 0) {
     return (
       <section className="max-w-3xl mx-auto mt-6">
@@ -18,7 +19,7 @@ export default function Tracks({ tracks }: Props) {
 
   return (
     <section className="max-w-5xl mx-auto mt-6">
-      <h3 className="text-lg font-semibold mb-4">Tracks: </h3>
+      <h3 className="text-lg font-semibold mb-4">{title ?? "Tracks"}: </h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {(tracks ?? []).slice(0, 8).map((t: SoundCloudTrack) => (

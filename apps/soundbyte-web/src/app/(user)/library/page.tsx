@@ -11,6 +11,7 @@ import {
 import Profile from "@/components/profile";
 import Playlists from "@/components/playlists";
 import Tracks from "@/components/tracks";
+import { SoundCloudPaginatedResponse } from "@/types/soundcloud-paginated-response";
 
 export default function Page() {
   const { session, streamingCredentials, isPending } = useAuth();
@@ -21,6 +22,9 @@ export default function Page() {
     null
   );
   const [tracks, setTracks] = useState<SoundCloudTrack[] | null>(null);
+  const [likedTracks, setLikedTracks] = useState<SoundCloudTrack[] | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Handle OAuth return on component mount
@@ -43,11 +47,12 @@ export default function Page() {
       provider: "soundcloud",
       userId,
     }).then((res) => {
-      const data = res as SoundCloudPlaylistResponse;
+      const data =
+        res as SoundCloudPaginatedResponse<SoundCloudPlaylistResponse>;
       // console.log("Playlists:");
       // console.log(data);
 
-      setPlaylists(data);
+      setPlaylists(data.collection);
     });
 
     // Get Tracks
@@ -55,11 +60,23 @@ export default function Page() {
       provider: "soundcloud",
       userId,
     }).then((res) => {
-      const data = res as SoundCloudTrack[];
-      console.log("Tracks:");
-      console.log(data);
+      const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
+      // console.log("Tracks:");
+      // console.log(data);
 
-      setTracks(data);
+      setTracks(data.collection);
+    });
+
+    // Get Liked Tracks
+    StreamingProviderOAuthClient.likedTracks({
+      provider: "soundcloud",
+      userId,
+    }).then((res) => {
+      const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
+      // console.log("Liked Tracks:");
+      // console.log(data);
+
+      setLikedTracks(data.collection);
     });
 
     setIsLoading(false);
@@ -73,7 +90,8 @@ export default function Page() {
     <main className="m-8">
       <Profile profile={profile} />
 
-      <Tracks tracks={tracks ?? undefined} />
+      <Tracks tracks={tracks ?? undefined} title="Tracks" />
+      <Tracks tracks={likedTracks ?? undefined} title="Likes" />
 
       <Playlists playlists={playlists ?? undefined} />
     </main>

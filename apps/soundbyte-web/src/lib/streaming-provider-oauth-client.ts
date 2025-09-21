@@ -180,4 +180,27 @@ export class StreamingProviderOAuthClient {
       throw error;
     }
   }
+
+  /**
+   * Get users liked tracks
+   */
+  static async likedTracks({
+    provider,
+    userId,
+  }: {
+    provider: string;
+    userId: string;
+  }): Promise<any> {
+    try {
+      const res = await axios.get(
+        `${this.baseUrl}/api/${provider}/userId/${userId}/tracks/likes`
+      );
+      console.log(res.data);
+
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to get users ${provider} tracks:`, error);
+      throw error;
+    }
+  }
 }
