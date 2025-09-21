@@ -1,29 +1,37 @@
 import {
-  Body,
   Controller,
   Get,
   Param,
   Query,
   Req,
   UnauthorizedException,
+  InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CredentialService } from '../services/credential-service';
+
+interface NormalizedResponse<T = any> {
+  collection: T[];
+  next_href?: string;
+}
 
 @ApiTags('SoundCloudApi')
 @Controller('api/soundcloud')
 export class SoundCloudApiController {
   constructor(private readonly credentialService: CredentialService) {}
 
-  /**
-   * Get user's SoundCloud profile
-   * GET /api/soundcloud/profile
-   */
-  @Get('/userId/:userId/profile')
-  async getProfile(
-    @Param('userId') userId: string,
-    @Req() req: Request,
-  ): Promise<any> {
+  private DEFAULT_LIMITS = {
+    playlists: 100,
+    tracks: 100,
+    likes: 10,
+    search: 25,
+  };
+
+  private async fetchFromSoundCloud<T>(
+    userId: string,
+    url: string,
+  ): Promise<T> {
     const credentials = await this.credentialService.getCredentials({
       userId,
       provider: 'soundcloud',
@@ -33,340 +41,164 @@ export class SoundCloudApiController {
       throw new UnauthorizedException('Not authenticated with SoundCloud');
     }
 
-    try {
-      const response = await fetch('https://api.soundcloud.com/me', {
-        headers: {
-          Authorization: `Bearer ${credentials.accessToken}`,
-        },
-      });
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${credentials.accessToken}` },
+    });
 
-      if (!response.ok) {
-        throw new UnauthorizedException('Invalid SoundCloud token');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Failed to fetch SoundCloud profile:', error);
-      throw new UnauthorizedException('Failed to fetch profile');
+    if (response.status === 401) {
+      throw new UnauthorizedException('Invalid or expired SoundCloud token');
     }
+
+    if (response.status === 404) {
+      throw new NotFoundException('SoundCloud resource not found');
+    }
+
+    if (!response.ok) {
+      throw new InternalServerErrorException(
+        `SoundCloud API error: ${response.statusText}`,
+      );
+    }
+
+    return response.json();
   }
 
-  /**
-   * Get user's SoundCloud playlists
-   * GET /api/soundcloud/playlists
-   */
+  private normalize<T = any>(data: any): NormalizedResponse<T> {
+    if (!data) return { collection: [] };
+
+    if (Array.isArray(data)) return { collection: data };
+
+    if (data.collection || data.items) {
+      return {
+        collection: data.collection ?? data.items ?? [],
+        next_href: data.next_href ?? data.nextHref,
+      };
+    }
+
+    if (data.items && Array.isArray(data.items)) {
+      return {
+        collection: data.items,
+        next_href: data.next_href ?? data.nextHref,
+      };
+    }
+
+    return { collection: [data] };
+  }
+
+  private buildUrl(
+    base: string,
+    nextHref?: string,
+    limit?: number,
+    extraParams?: Record<string, string>,
+  ): string {
+    if (nextHref) return nextHref;
+
+    const url = new URL(base);
+    url.searchParams.set('linked_partitioning', 'true');
+    if (limit) url.searchParams.set('limit', String(limit));
+    if (extraParams) {
+      Object.entries(extraParams).forEach(([k, v]) =>
+        url.searchParams.set(k, v),
+      );
+    }
+    return url.toString();
+  }
+
+  /** ----------- Endpoints ----------- **/
+
+  @Get('/userId/:userId/profile')
+  @ApiResponse({ status: 200, description: 'User profile' })
+  async getProfile(@Param('userId') userId: string): Promise<any> {
+    const url = 'https://api.soundcloud.com/me';
+    return this.fetchFromSoundCloud(userId, url);
+  }
+
   @Get('/userId/:userId/playlists')
+  @ApiQuery({ name: 'next_href', required: false })
   async getPlaylists(
     @Param('userId') userId: string,
-    @Req() req: Request,
-    @Query('page') pageRaw?: string,
     @Query('limit') limitRaw?: string,
-  ): Promise<any> {
-    const credentials = await this.credentialService.getCredentials({
-      userId,
-      provider: 'soundcloud',
-    });
+    @Query('next_href') nextHref?: string,
+  ): Promise<NormalizedResponse> {
+    const limit = parseInt(limitRaw || '') || this.DEFAULT_LIMITS.playlists;
 
-    if (!credentials) {
-      throw new UnauthorizedException('Not authenticated with SoundCloud');
-    }
+    const url = this.buildUrl(
+      'https://api.soundcloud.com/me/playlists',
+      nextHref,
+      limit,
+      { show_tracks: 'true' },
+    );
 
-    try {
-      // parse pagination params
-      const DEFAULT_LIMIT = 100;
-      const page = Math.max(1, parseInt(String(pageRaw)) || 1);
-      const limit = Math.min(
-        200,
-        Math.max(1, parseInt(String(limitRaw)) || DEFAULT_LIMIT),
-      );
-
-      // SoundCloud supports linked_partitioning with next_href for cursor-style pagination.
-      // But it also accepts offset param for basic offset pagination in many endpoints.
-      const offset = (page - 1) * limit;
-
-      const url = new URL('https://api.soundcloud.com/me/playlists');
-      url.searchParams.set('limit', String(limit));
-      url.searchParams.set('linked_partitioning', 'true');
-      url.searchParams.set('show_tracks', 'true');
-      // include offset to support predictable paging if SoundCloud accepts it
-      url.searchParams.set('offset', String(offset));
-
-      const response = await fetch(url.toString(), {
-        headers: {
-          Authorization: `Bearer ${credentials.accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new UnauthorizedException('Invalid SoundCloud token');
-      }
-
-      const data = await response.json();
-
-      // If SoundCloud returned a collection with pagination (collection + next_href), return as-is
-      if (data && (data.collection || data.next_href)) {
-        return data;
-      }
-
-      // Fallback: ensure we return items and pagination metadata
-      const items = Array.isArray(data) ? data : data.items || [];
-      const total = items.length;
-
-      return {
-        collection: items,
-        pagination: {
-          page,
-          limit,
-          offset,
-          total,
-          // note: SoundCloud may not provide total_count reliably
-        },
-      };
-    } catch (error) {
-      console.error('Failed to fetch SoundCloud playlists:', error);
-      throw new UnauthorizedException('Failed to fetch playlists');
-    }
+    const data = await this.fetchFromSoundCloud(userId, url);
+    return this.normalize(data);
   }
 
-  /**
-   * Get user's SoundCloud tracks
-   * GET /api/soundcloud/tracks
-   */
   @Get('/userId/:userId/tracks')
+  @ApiQuery({ name: 'next_href', required: false })
   async getTracks(
     @Param('userId') userId: string,
-    @Req() req: Request,
-    @Query('page') pageRaw?: string,
     @Query('limit') limitRaw?: string,
-  ): Promise<any> {
-    const credentials = await this.credentialService.getCredentials({
-      userId,
-      provider: 'soundcloud',
-    });
+    @Query('next_href') nextHref?: string,
+  ): Promise<NormalizedResponse> {
+    const limit = parseInt(limitRaw || '') || this.DEFAULT_LIMITS.tracks;
 
-    if (!credentials) {
-      throw new UnauthorizedException('Not authenticated with SoundCloud');
-    }
+    const url = this.buildUrl(
+      'https://api.soundcloud.com/me/tracks',
+      nextHref,
+      limit,
+    );
 
-    try {
-      const DEFAULT_LIMIT = 100;
-      const page = Math.max(1, parseInt(String(pageRaw)) || 1);
-      const limit = Math.min(
-        200,
-        Math.max(1, parseInt(String(limitRaw)) || DEFAULT_LIMIT),
-      );
-      const offset = (page - 1) * limit;
-
-      const url = new URL('https://api.soundcloud.com/me/tracks');
-      url.searchParams.set('limit', String(limit));
-      url.searchParams.set('linked_partitioning', 'true');
-      url.searchParams.set('offset', String(offset));
-
-      const response = await fetch(url.toString(), {
-        headers: {
-          Authorization: `Bearer ${credentials.accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new UnauthorizedException('Invalid SoundCloud token');
-      }
-
-      const data = await response.json();
-
-      if (data && (data.collection || data.next_href)) {
-        return data;
-      }
-
-      const items = Array.isArray(data) ? data : data.items || [];
-      const total = items.length;
-
-      return {
-        collection: items,
-        pagination: {
-          page,
-          limit,
-          offset,
-          total,
-        },
-      };
-    } catch (error) {
-      console.error('Failed to fetch SoundCloud tracks:', error);
-      throw new UnauthorizedException('Failed to fetch tracks');
-    }
+    const data = await this.fetchFromSoundCloud(userId, url);
+    return this.normalize(data);
   }
 
-  /**
-   * Get user's SoundCloud tracks
-   * GET /api/soundcloud/tracks
-   */
   @Get('/userId/:userId/tracks/likes')
+  @ApiQuery({ name: 'next_href', required: false })
   async getLikedTracks(
     @Param('userId') userId: string,
-    @Req() req: Request,
-    @Query('page') pageRaw?: string,
     @Query('limit') limitRaw?: string,
-  ): Promise<any> {
-    const credentials = await this.credentialService.getCredentials({
-      userId,
-      provider: 'soundcloud',
-    });
+    @Query('next_href') nextHref?: string,
+  ): Promise<NormalizedResponse> {
+    const limit = parseInt(limitRaw || '') || this.DEFAULT_LIMITS.likes;
 
-    if (!credentials) {
-      throw new UnauthorizedException('Not authenticated with SoundCloud');
-    }
+    const url = this.buildUrl(
+      'https://api.soundcloud.com/me/likes/tracks',
+      nextHref,
+      limit,
+    );
 
-    try {
-      const DEFAULT_LIMIT = 10;
-      const page = Math.max(1, parseInt(String(pageRaw)) || 1);
-      const limit = Math.min(
-        200,
-        Math.max(1, parseInt(String(limitRaw)) || DEFAULT_LIMIT),
-      );
-      const offset = (page - 1) * limit;
-
-      const url = new URL('https://api.soundcloud.com/me/likes/tracks');
-      url.searchParams.set('limit', String(limit));
-      url.searchParams.set('linked_partitioning', 'true');
-      url.searchParams.set('offset', String(offset));
-
-      const response = await fetch(url.toString(), {
-        headers: {
-          Authorization: `Bearer ${credentials.accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new UnauthorizedException('Invalid SoundCloud token');
-      }
-
-      const data = await response.json();
-
-      if (data && (data.collection || data.next_href)) {
-        return data;
-      }
-
-      const items = Array.isArray(data) ? data : data.items || [];
-      const total = items.length;
-
-      return {
-        collection: items,
-        pagination: {
-          page,
-          limit,
-          offset,
-          total,
-        },
-      };
-    } catch (error) {
-      console.error('Failed to fetch SoundCloud liked tracks:', error);
-      throw new UnauthorizedException('Failed to fetch liked tracks');
-    }
+    const data = await this.fetchFromSoundCloud(userId, url);
+    return this.normalize(data);
   }
 
-  /**
-   * Get user's SoundCloud tracks
-   * GET /api/soundcloud/tracks
-   */
   @Get('/userId/:userId/tracks/search/:searchTerm')
+  @ApiQuery({ name: 'next_href', required: false })
   async searchTracks(
     @Param('userId') userId: string,
     @Param('searchTerm') searchTerm: string,
-    @Req() req: Request,
-    @Query('page') pageRaw?: string,
     @Query('limit') limitRaw?: string,
-  ): Promise<any> {
-    const credentials = await this.credentialService.getCredentials({
-      userId,
-      provider: 'soundcloud',
-    });
+    @Query('next_href') nextHref?: string,
+  ): Promise<NormalizedResponse> {
+    const limit = parseInt(limitRaw || '') || this.DEFAULT_LIMITS.search;
 
-    if (!credentials) {
-      throw new UnauthorizedException('Not authenticated with SoundCloud');
-    }
+    const url = this.buildUrl(
+      'https://api.soundcloud.com/tracks',
+      nextHref,
+      limit,
+      { q: searchTerm },
+    );
 
-    try {
-      const DEFAULT_LIMIT = 50;
-      const page = Math.max(1, parseInt(String(pageRaw)) || 1);
-      const limit = Math.min(
-        200,
-        Math.max(1, parseInt(String(limitRaw)) || DEFAULT_LIMIT),
-      );
-      const offset = (page - 1) * limit;
-
-      const url = new URL('https://api.soundcloud.com/tracks');
-      url.searchParams.set('limit', String(limit));
-      url.searchParams.set('offset', String(offset));
-      url.searchParams.set('linked_partitioning', 'true');
-      url.searchParams.set('q', String(searchTerm)); // search string
-
-      /*
-      url.searchParams.set('ids', String('')); // example: `1,2,3`
-      url.searchParams.set('urns', String('')); // example: `soundcloud:tracks:1,soundcloud:tracks:2`
-      url.searchParams.set('genres', String('')); // example: `Pop,House`
-      url.searchParams.set('tags', String('')); //
-      url.searchParams.set('bpm', Object({ from: Number(), to: Number() }));
-      url.searchParams.set(
-        'durration',
-        Object({ from: Number(), to: Number() }),
-      );
-      url.searchParams.set(
-        'created_at',
-        Object({ from: Number(), to: Number() }),
-      );
-      url.searchParams.set(
-        'created_at',
-        Object({ from: Number(), to: Number() }),
-      );
-      */
-
-      const response = await fetch(url.toString(), {
-        headers: {
-          Authorization: `Bearer ${credentials.accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new UnauthorizedException('Invalid SoundCloud token');
-      }
-
-      const data = await response.json();
-
-      if (data && (data.collection || data.next_href)) {
-        return data;
-      }
-
-      const items = Array.isArray(data) ? data : data.items || [];
-      const total = items.length;
-
-      return {
-        collection: items,
-        pagination: {
-          page,
-          limit,
-          offset,
-          total,
-        },
-      };
-    } catch (error) {
-      console.error('Failed to search SoundCloud tracks:', error);
-      throw new UnauthorizedException('Failed to find tracks');
-    }
+    const data = await this.fetchFromSoundCloud(userId, url);
+    return this.normalize(data);
   }
 
-  /**
-   * Get authentication status
-   * GET /api/soundcloud/status
-   */
   @Get('status')
   getAuthStatus(
-    @Req() req: Request & { session: { soundcloudToken: string } },
-  ): any {
-    const hasToken = !!req.session?.['soundcloudToken'];
-
+    @Req() req: Request & { session: { soundcloudToken?: string } },
+  ) {
+    const authenticated = !!req.session?.soundcloudToken;
     return {
-      authenticated: hasToken,
-      soundcloudConnected: hasToken,
+      authenticated,
+      soundcloudConnected: authenticated,
     };
   }
 }

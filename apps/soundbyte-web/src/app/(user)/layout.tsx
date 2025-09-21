@@ -27,6 +27,34 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     undefined
   );
 
+  const fetchSearchResults = async (options?: { next?: boolean }) => {
+    if (!session) return;
+    let cancel = false;
+
+    try {
+      const limit = 25;
+
+      const res = await StreamingProviderOAuthClient.searchTracks({
+        provider: "soundcloud",
+        userId: session.user.id,
+        limit,
+        nextHref: undefined,
+        searchTerm: search,
+      });
+
+      const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
+      // console.log("Search Result:");
+      // console.log(data);
+
+      if (!cancel) {
+        setSearchResults(data.collection);
+      }
+    } catch (err) {
+      console.error("Failed to search tracks:", err);
+    } finally {
+    }
+  };
+
   useEffect(() => {
     if (!streamingCredentials) return;
 

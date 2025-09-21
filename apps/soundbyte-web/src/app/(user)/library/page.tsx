@@ -17,72 +17,159 @@ export default function Page() {
   const { session, streamingCredentials, isPending } = useAuth();
   const userId = session?.user.id;
 
+  // Profile
   const [profile, setProfile] = useState<SoundCloudProfile>();
+  const [isLoadingProfile, setIsLoadingProfile] = useState<boolean>(false);
+
+  const fetchProfile = async () => {
+    if (!userId) return;
+    setIsLoadingProfile(true);
+
+    try {
+      const res = await StreamingProviderOAuthClient.profile({
+        provider: "soundcloud",
+        userId,
+      });
+
+      setProfile(res as SoundCloudProfile);
+    } catch (err) {
+      console.error("Failed to load profile:", err);
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
+  // Playlists
   const [playlists, setPlaylists] = useState<SoundCloudPlaylistResponse | null>(
     null
   );
+  const [isLoadingPlaylists, setIsLoadingPlaylists] = useState<boolean>(false);
+  const [playlistNextHref, setPlaylistNextHref] = useState<string | undefined>(
+    undefined
+  );
+
+  const fetchPlaylists = async (options?: { next?: boolean }) => {
+    if (!userId) return;
+    setIsLoadingPlaylists(true);
+    const limit = 25;
+
+    try {
+      const res = await StreamingProviderOAuthClient.playlists({
+        provider: "soundcloud",
+        userId,
+        limit,
+        nextHref: options?.next ? playlistNextHref : undefined,
+      });
+
+      const data =
+        res as SoundCloudPaginatedResponse<SoundCloudPlaylistResponse>;
+      setPlaylists(data.collection);
+
+      setPlaylistNextHref(data.next_href);
+    } catch (err) {
+      console.error("Failed to load playlists:", err);
+    } finally {
+      setIsLoadingPlaylists(false);
+    }
+  };
+
+  // User Tracks
   const [tracks, setTracks] = useState<SoundCloudTrack[] | null>(null);
+  const [isLoadingTracks, setIsLoadingTracks] = useState<boolean>(false);
+  const [tracksNextHref, setTracksNextHref] = useState<string | undefined>(
+    undefined
+  );
+
+  const fetchTracks = async (options?: { next?: boolean }) => {
+    if (!userId) return;
+    setIsLoadingTracks(true);
+
+    const limit = 10;
+
+    try {
+      const res = await StreamingProviderOAuthClient.tracks({
+        provider: "soundcloud",
+        userId,
+        limit,
+        nextHref: options?.next ? tracksNextHref : undefined,
+      });
+
+      const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
+      setTracks((prev) =>
+        options?.next && prev ? [...prev, ...data.collection] : data.collection
+      );
+      setTracksNextHref(data.next_href);
+    } catch (err) {
+      console.error("Failed to load tracks:", err);
+    } finally {
+      setIsLoadingTracks(false);
+    }
+  };
+
+  // Liked Tracks
   const [likedTracks, setLikedTracks] = useState<SoundCloudTrack[] | null>(
     null
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingLikes, setIsLoadingLikes] = useState<boolean>(false);
+  const [likedTracksNextHref, setLikedTracksNextHref] = useState<
+    string | undefined
+  >(undefined);
 
-  // Handle OAuth return on component mount
+  const fetchLikedTracks = async (options?: { next?: boolean }) => {
+    if (!userId) return;
+    setIsLoadingLikes(true);
+
+    try {
+      const limit = 25;
+
+      const res = await StreamingProviderOAuthClient.likedTracks({
+        provider: "soundcloud",
+        userId,
+        limit,
+        nextHref: options?.next ? likedTracksNextHref : undefined,
+      });
+
+      const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
+      setLikedTracks(data.collection);
+      setLikedTracksNextHref(data.next_href);
+    } catch (err) {
+      console.error("Failed to load liked tracks:", err);
+    } finally {
+      setIsLoadingLikes(false);
+    }
+  };
+
+  // Fetch profile on mount or when userId changes
   useEffect(() => {
     if (!userId) return;
-    setIsLoading(true);
 
-    // Get Profile
-    StreamingProviderOAuthClient.profile({
-      provider: "soundcloud",
-      userId,
-    }).then((res) => {
-      const data: SoundCloudProfile = res;
+    fetchProfile();
+  }, [userId]);
 
-      setProfile(data);
-    });
+  // Fetch playlists
+  useEffect(() => {
+    if (!userId) return;
 
-    // Get Playlists
-    StreamingProviderOAuthClient.playlists({
-      provider: "soundcloud",
-      userId,
-    }).then((res) => {
-      const data =
-        res as SoundCloudPaginatedResponse<SoundCloudPlaylistResponse>;
-      // console.log("Playlists:");
-      // console.log(data);
+    fetchPlaylists();
+  }, [userId]);
 
-      setPlaylists(data.collection);
-    });
+  // Fetch user tracks
+  useEffect(() => {
+    if (!userId) return;
 
-    // Get Tracks
-    StreamingProviderOAuthClient.tracks({
-      provider: "soundcloud",
-      userId,
-    }).then((res) => {
-      const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
-      // console.log("Tracks:");
-      // console.log(data);
+    fetchTracks();
+  }, [userId]);
 
-      setTracks(data.collection);
-    });
+  // Fetch liked tracks
+  useEffect(() => {
+    if (!userId) return;
 
-    // Get Liked Tracks
-    StreamingProviderOAuthClient.likedTracks({
-      provider: "soundcloud",
-      userId,
-    }).then((res) => {
-      const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
-      // console.log("Liked Tracks:");
-      // console.log(data);
+    fetchLikedTracks();
+  }, [userId]);
 
-      setLikedTracks(data.collection);
-    });
-
-    setIsLoading(false);
-  }, []);
-
-  if (isLoading) {
+  const anyLoading =
+    isLoadingProfile || isLoadingPlaylists || isLoadingTracks || isLoadingLikes;
+  if (anyLoading) {
     return <>Loading...</>;
   }
 
@@ -90,8 +177,21 @@ export default function Page() {
     <main className="m-8">
       <Profile profile={profile} />
 
-      <Tracks tracks={tracks ?? undefined} title="Tracks" />
-      <Tracks tracks={likedTracks ?? undefined} title="Likes" />
+      <Tracks
+        tracks={tracks}
+        title="Tracks"
+        hasMore={!!tracksNextHref}
+        isLoading={isLoadingTracks}
+        onLoadMore={() => fetchTracks({ next: true })}
+      />
+
+      <Tracks
+        tracks={likedTracks}
+        title="Likes"
+        hasMore={!!likedTracksNextHref}
+        isLoading={isLoadingLikes}
+        onLoadMore={() => fetchLikedTracks({ next: true })}
+      />
 
       <Playlists playlists={playlists ?? undefined} />
     </main>

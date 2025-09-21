@@ -18,7 +18,7 @@ export default function TrackSearchResult({
       onClick={handlePlay}
     >
       <img
-        src={track.artwork_url ?? ""}
+        src={track.artwork_url ?? "/file.svg"}
         alt={`${track.title} album cover`}
         style={{ width: 50, height: 50 }}
       />

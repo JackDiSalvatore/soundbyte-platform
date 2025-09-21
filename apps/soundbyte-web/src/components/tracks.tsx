@@ -4,9 +4,18 @@ import Track from "./track";
 type Props = {
   tracks?: SoundCloudTrack[] | null;
   title?: string;
+  onLoadMore?: () => void; // new
+  hasMore?: boolean; // new
+  isLoading?: boolean; // new
 };
 
-export default function Tracks({ tracks, title }: Props) {
+export default function Tracks({
+  tracks,
+  title,
+  onLoadMore,
+  hasMore,
+  isLoading,
+}: Props) {
   if (!tracks || tracks.length === 0) {
     return (
       <section className="max-w-3xl mx-auto mt-6">
@@ -22,7 +31,7 @@ export default function Tracks({ tracks, title }: Props) {
       <h3 className="text-lg font-semibold mb-4">{title ?? "Tracks"}: </h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {(tracks ?? []).slice(0, 8).map((t: SoundCloudTrack) => (
+        {tracks.map((t: SoundCloudTrack) => (
           <article
             key={t.id ?? t.permalink_url}
             className="bg-card/60 backdrop-blur-md border border-border rounded-xl p-4 shadow"
@@ -30,13 +39,19 @@ export default function Tracks({ tracks, title }: Props) {
             <Track key={t.id ?? t.uri} track={t} />
           </article>
         ))}
-
-        {tracks && tracks.length > 8 && (
-          <div className="text-xs text-primary mt-1">
-            Show all {tracks.length} tracks (TODO)
-          </div>
-        )}
       </div>
+
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={onLoadMore}
+            disabled={isLoading}
+            className="px-4 py-2 bg-primary text-white rounded-lg shadow disabled:opacity-50"
+          >
+            {isLoading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
     </section>
   );
 }
