@@ -286,7 +286,7 @@ export class SoundCloudApiController {
     }
 
     try {
-      const DEFAULT_LIMIT = 10;
+      const DEFAULT_LIMIT = 50;
       const page = Math.max(1, parseInt(String(pageRaw)) || 1);
       const limit = Math.min(
         200,

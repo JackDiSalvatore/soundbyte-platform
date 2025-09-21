@@ -52,10 +52,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         searchTerm: search,
       }).then((res) => {
         const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
-        console.log("Search Result:");
-        console.log(data);
-
-        // const searchRes: SpotifySearchResult[] = [];
+        // console.log("Search Result:");
+        // console.log(data);
 
         if (!cancel) {
           setSearchResults(data.collection);
