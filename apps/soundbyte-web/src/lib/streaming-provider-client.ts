@@ -2,7 +2,7 @@
 import { env } from "@/lib/environment";
 import axios from "axios";
 
-export class StreamingProviderOAuthClient {
+export class StreamingProviderClient {
   private static baseUrl = env.NEXT_PUBLIC_STREAMING_API;
 
   /**

@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthProvider";
 import { env } from "@/lib/environment";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { StreamingProviderOAuthClient } from "../../../lib/streaming-provider-oauth-client";
+import { StreamingProviderClient } from "../../../lib/streaming-provider-client";
 
 // const spotifyStyling = "bg-green-500 hover:bg-green-400 text-white";
 const soundCloudStyling = "bg-orange-500 hover:bg-orange-400 text-white";
@@ -36,7 +36,7 @@ export default function Page() {
 
   // Handle OAuth return on component mount
   useEffect(() => {
-    const oauthResult = StreamingProviderOAuthClient.handleOAuthReturn();
+    const oauthResult = StreamingProviderClient.handleOAuthReturn();
 
     if (oauthResult.success && oauthResult.provider) {
       setNotification({
@@ -76,7 +76,7 @@ export default function Page() {
 
     try {
       // Option 1: Direct redirect (simpler)
-      await StreamingProviderOAuthClient.connectProvider(
+      await StreamingProviderClient.connectProvider(
         provider,
         userId,
         window.location.pathname // Return to current page
@@ -99,7 +99,7 @@ export default function Page() {
     setLoadingProvider(provider);
 
     try {
-      await StreamingProviderOAuthClient.disconnectProvider(provider, userId);
+      await StreamingProviderClient.disconnectProvider(provider, userId);
 
       setNotification({
         type: "success",

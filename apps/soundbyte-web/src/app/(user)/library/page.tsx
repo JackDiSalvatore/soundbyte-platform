@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/context/AuthProvider";
-import { StreamingProviderOAuthClient } from "@/lib/streaming-provider-oauth-client";
+import { StreamingProviderClient } from "@/lib/streaming-provider-client";
 import { SoundCloudProfile } from "@/types/soundcloud-profile";
 import {
   SoundCloudPlaylist,
@@ -22,7 +22,7 @@ export default function Page() {
   // Profile
   const { data: profile, isLoading: isLoadingProfile } = useFetch(
     (): Promise<SoundCloudProfile> =>
-      StreamingProviderOAuthClient.profile({
+      StreamingProviderClient.profile({
         provider: "soundcloud",
         userId,
       }),
@@ -37,7 +37,7 @@ export default function Page() {
     fetchPage: fetchPlaylists,
   } = usePaginatedFetch<SoundCloudPlaylist>(
     (opts): Promise<SoundCloudPaginatedResponse<SoundCloudPlaylist[]>> =>
-      StreamingProviderOAuthClient.playlists({
+      StreamingProviderClient.playlists({
         provider: "soundcloud",
         userId,
         limit: 25,
@@ -54,7 +54,7 @@ export default function Page() {
     fetchPage: fetchTracks,
   } = usePaginatedFetch<SoundCloudTrack>(
     (opts): Promise<SoundCloudPaginatedResponse<SoundCloudTrack[]>> =>
-      StreamingProviderOAuthClient.tracks({
+      StreamingProviderClient.tracks({
         provider: "soundcloud",
         userId,
         limit: 10,
@@ -71,7 +71,7 @@ export default function Page() {
     fetchPage: fetchLikedTracks,
   } = usePaginatedFetch<SoundCloudTrack>(
     (opts): Promise<SoundCloudPaginatedResponse<SoundCloudTrack[]>> =>
-      StreamingProviderOAuthClient.likedTracks({
+      StreamingProviderClient.likedTracks({
         provider: "soundcloud",
         userId,
         limit: 25,

@@ -7,9 +7,10 @@ import { useEffect, useState } from "react";
 // import Player from "@/components/player";
 import { useAuth } from "@/context/AuthProvider";
 import SearchInput from "@/components/search-input";
-import { StreamingProviderOAuthClient } from "@/lib/streaming-provider-oauth-client";
+import { StreamingProviderClient } from "@/lib/streaming-provider-client";
 import { SoundCloudPaginatedResponse } from "@/types/soundcloud-paginated-response";
 import { SoundCloudTrack } from "@/types/soundcloud-playlist";
+import { usePaginatedFetch } from "@/hooks/use-paginated-fetch";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { session, streamingCredentials, isPending } = useAuth();
@@ -22,38 +23,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   >(null);
 
   const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<SoundCloudTrack[]>([]);
   const [playingTrack, setPlayingTrack] = useState<SoundCloudTrack | undefined>(
     undefined
   );
-
-  const fetchSearchResults = async (options?: { next?: boolean }) => {
-    if (!session) return;
-    let cancel = false;
-
-    try {
-      const limit = 25;
-
-      const res = await StreamingProviderOAuthClient.searchTracks({
-        provider: "soundcloud",
-        userId: session.user.id,
-        limit,
-        nextHref: undefined,
-        searchTerm: search,
-      });
-
-      const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
-      // console.log("Search Result:");
-      // console.log(data);
-
-      if (!cancel) {
-        setSearchResults(data.collection);
-      }
-    } catch (err) {
-      console.error("Failed to search tracks:", err);
-    } finally {
-    }
-  };
 
   useEffect(() => {
     if (!streamingCredentials) return;
@@ -64,37 +36,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     setSoundCloudAccessToken(streamingCredentials.accessToken);
   }, [streamingCredentials]);
 
-  // Set Search
-  useEffect(() => {
-    if (!search) return setSearchResults([]);
-    if (!streamingCredentials) return;
-    if (!session) return;
-
-    let cancel = false;
-
-    const fetchSearchResults = async () => {
-      // TODO: call the backend
-      StreamingProviderOAuthClient.searchTracks({
+  // Set Search Results
+  const {
+    data: searchResults,
+    nextHref: searchNext,
+    isLoading: isLoadingSearch,
+    fetchPage: fetchSearch,
+  } = usePaginatedFetch<SoundCloudTrack>(
+    (opts): Promise<SoundCloudPaginatedResponse<SoundCloudTrack[]>> =>
+      StreamingProviderClient.searchTracks({
         provider: "soundcloud",
-        userId: session.user.id,
+        userId: session?.user.id ?? "",
         searchTerm: search,
-      }).then((res) => {
-        const data = res as SoundCloudPaginatedResponse<SoundCloudTrack[]>;
-        // console.log("Search Result:");
-        // console.log(data);
-
-        if (!cancel) {
-          setSearchResults(data.collection);
-        }
-      });
-    };
-
-    fetchSearchResults();
-
-    return () => {
-      cancel = true;
-    };
-  }, [search]);
+        limit: 25,
+        nextHref: opts?.next ? searchNext : undefined,
+      }),
+    [search]
+  );
 
   // Handle playTrack changes
   useEffect(() => {
