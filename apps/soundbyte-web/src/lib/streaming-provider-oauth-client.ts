@@ -141,15 +141,24 @@ export class StreamingProviderOAuthClient {
   static async playlists({
     provider,
     userId,
+    limit,
+    nextHref,
   }: {
     provider: string;
     userId: string;
+    limit?: number;
+    nextHref?: string;
   }): Promise<any> {
     try {
       const res = await axios.get(
-        `${this.baseUrl}/api/${provider}/userId/${userId}/playlists`
+        `${this.baseUrl}/api/${provider}/userId/${userId}/playlists`,
+        {
+          params: {
+            limit,
+            next_href: nextHref,
+          },
+        }
       );
-      console.log(res.data);
 
       return res.data;
     } catch (error) {
@@ -164,19 +173,31 @@ export class StreamingProviderOAuthClient {
   static async tracks({
     provider,
     userId,
+    limit,
+    nextHref,
   }: {
-    provider: string;
+    provider: string; // e.g. "soundcloud"
     userId: string;
+    limit?: number;
+    nextHref?: string;
   }): Promise<any> {
     try {
       const res = await axios.get(
-        `${this.baseUrl}/api/${provider}/userId/${userId}/tracks`
+        `${this.baseUrl}/api/${provider}/userId/${userId}/tracks`,
+        {
+          params: {
+            limit,
+            next_href: nextHref,
+          },
+        }
       );
-      console.log(res.data);
 
       return res.data;
     } catch (error) {
-      console.error(`Failed to get users ${provider} tracks:`, error);
+      console.error(
+        `Failed to get ${provider} tracks for user ${userId}:`,
+        error
+      );
       throw error;
     }
   }
@@ -187,15 +208,24 @@ export class StreamingProviderOAuthClient {
   static async likedTracks({
     provider,
     userId,
+    limit,
+    nextHref,
   }: {
     provider: string;
     userId: string;
+    limit?: number;
+    nextHref?: string;
   }): Promise<any> {
     try {
       const res = await axios.get(
-        `${this.baseUrl}/api/${provider}/userId/${userId}/tracks/likes`
+        `${this.baseUrl}/api/${provider}/userId/${userId}/tracks/likes`,
+        {
+          params: {
+            limit,
+            next_href: nextHref,
+          },
+        }
       );
-      console.log(res.data);
 
       return res.data;
     } catch (error) {
@@ -210,21 +240,30 @@ export class StreamingProviderOAuthClient {
   static async searchTracks({
     provider,
     userId,
+    limit,
+    nextHref,
     searchTerm,
   }: {
     provider: string;
     userId: string;
+    limit?: number;
+    nextHref?: string;
     searchTerm: string;
   }): Promise<any> {
     try {
       const res = await axios.get(
-        `${this.baseUrl}/api/${provider}/userId/${userId}/tracks/search/${searchTerm}`
+        `${this.baseUrl}/api/${provider}/userId/${userId}/tracks/search/${searchTerm}`,
+        {
+          params: {
+            limit,
+            next_href: nextHref,
+          },
+        }
       );
-      console.log(res.data);
 
       return res.data;
     } catch (error) {
-      console.error(`Failed to get users ${provider} tracks:`, error);
+      console.error(`Failed to search ${provider} for tracks:`, error);
       throw error;
     }
   }
