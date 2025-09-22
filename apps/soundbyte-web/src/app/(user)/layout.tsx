@@ -131,6 +131,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             onEnded={handleTrackEnd}
             onPlay={() => console.log(`Now playing: ${playingTrack.title}`)}
             onPause={() => console.log(`Paused: ${playingTrack.title}`)}
+            onLoadStart={() => console.log("Load start")}
+            onLoadEnd={() => console.log("Load End")}
           />
         </div>
       )}
