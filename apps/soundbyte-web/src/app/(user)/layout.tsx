@@ -1,10 +1,9 @@
 "use client";
 
-import Footer from "@/components/footer";
 import Header from "@/components/header";
+import SoundCloudPlayer from "@/components/soundcloud-player"; // Import your SoundCloudPlayer component
 
 import { useEffect, useState } from "react";
-// import Player from "@/components/player";
 import { useAuth } from "@/context/AuthProvider";
 import SearchInput from "@/components/search-input";
 import { StreamingProviderClient } from "@/lib/streaming-provider-client";
@@ -15,9 +14,6 @@ import { usePaginatedFetch } from "@/hooks/use-paginated-fetch";
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { session, streamingCredentials, isPending } = useAuth();
 
-  // const [spotifyAccessToken, setSpotifyAccessToken] = useState<string | null>(
-  //   null
-  // );
   const [soundCloudAccessToken, setSoundCloudAccessToken] = useState<
     string | null
   >(null);
@@ -30,7 +26,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!streamingCredentials) return;
 
-    console.log("Your exisitng credentials are:");
+    console.log("Your existing credentials are:");
     console.log(JSON.stringify(streamingCredentials));
 
     setSoundCloudAccessToken(streamingCredentials.accessToken);
@@ -88,6 +84,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     setSearch("");
   }
 
+  // Player event handlers
+  const handlePlayerError = (error: string) => {
+    console.error("SoundCloud Player Error:", error);
+    // Optionally show user-friendly error message or reset playing track
+  };
+
+  const handleTrackEnd = () => {
+    console.log("Track ended");
+    // Optionally auto-play next track or reset player
+  };
+
   if (isPending) {
     return <div>Loading...</div>;
   }
@@ -105,10 +112,28 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </Header>
 
       {/* Content area with top + bottom padding equal to header/footer heights to avoid overlap */}
-      <main className="pt-[64px] pb-[64px]">{children}</main>
+      <main className="pt-[64px] pb-[120px]">{children}</main>
 
-      {/* Fixed footer overlay */}
-      <Footer className="fixed inset-x-0 bottom-0 z-50 flex items-baseline justify-between border-t-2 p-2 bg-background/90 backdrop-blur" />
+      {/* Fixed SoundCloud Player overlay - replaces Footer */}
+      {playingTrack && soundCloudAccessToken && (
+        <div className="fixed inset-x-0 bottom-0 z-50 bg-background/95 backdrop-blur border-t-2 p-4">
+          <SoundCloudPlayer
+            streamUrl={
+              playingTrack.stream_url ||
+              `https://api.soundcloud.com/tracks/${playingTrack.id}/stream`
+            }
+            accessToken={soundCloudAccessToken}
+            trackTitle={playingTrack.title}
+            artistName={playingTrack.user?.username || "Unknown Artist"}
+            artworkUrl={playingTrack.artwork_url}
+            soundcloudUrl={playingTrack.permalink_url}
+            onError={handlePlayerError}
+            onEnded={handleTrackEnd}
+            onPlay={() => console.log(`Now playing: ${playingTrack.title}`)}
+            onPause={() => console.log(`Paused: ${playingTrack.title}`)}
+          />
+        </div>
+      )}
     </div>
   );
 }

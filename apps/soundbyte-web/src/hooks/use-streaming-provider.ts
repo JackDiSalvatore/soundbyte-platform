@@ -38,7 +38,7 @@ export default function useStreamingProvider({
       )
       .then((res) => {
         console.log(`res:`, res);
-        const data = res as unknown as CreateProviderCredentialsDto;
+        const data = res.data as unknown as { accessToken: string };
 
         const access = {
           provider,
