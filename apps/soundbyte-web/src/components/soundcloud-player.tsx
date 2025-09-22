@@ -326,7 +326,7 @@ export default function SoundCloudPlayer({
       )}
 
       {/* Attribution (Required by SoundCloud) */}
-      <div className="text-center border-t pt-3">
+      <div className="flex justify-between text-center border-t pt-3">
         <p className="text-xs text-gray-500 mb-1">
           Powered by{" "}
           <a
