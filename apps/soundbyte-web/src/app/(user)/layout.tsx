@@ -40,17 +40,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const {
     data: searchResults,
     nextHref: searchNext,
-    isLoading: isLoadingSearch,
+    isLoading: isLoadingSearchResults,
     fetchPage: fetchSearch,
+    reset: resetSearchResults,
   } = usePaginatedFetch<SoundCloudTrack>(
-    (opts): Promise<SoundCloudPaginatedResponse<SoundCloudTrack[]>> =>
-      StreamingProviderClient.searchTracks({
+    (opts): Promise<SoundCloudPaginatedResponse<SoundCloudTrack[]>> => {
+      // don't run empty search
+      if (!search.trim()) {
+        return Promise.resolve({
+          collection: [],
+          next_href: undefined,
+        });
+      }
+
+      return StreamingProviderClient.searchTracks({
         provider: "soundcloud",
         userId: session?.user.id ?? "",
         searchTerm: search,
         limit: 25,
         nextHref: opts?.next ? searchNext : undefined,
-      }),
+      });
+    },
     [search]
   );
 
@@ -58,12 +68,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!playingTrack) return;
 
+    console.log("Play your track here!", playingTrack);
+
     // No playing
   }, [playingTrack]);
 
   // Handle Search Songs Input Event
   const searchSongs = (value: string) => {
     setSearch(value);
+
+    // reset results when search cleared
+    if (value.trim() === "") {
+      resetSearchResults();
+    }
   };
 
   function chooseTrack(track: SoundCloudTrack): void {
@@ -92,12 +109,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Fixed footer overlay */}
       <Footer className="fixed inset-x-0 bottom-0 z-50 flex items-baseline justify-between border-t-2 p-2 bg-background/90 backdrop-blur" />
-
-      {/* <Player
-        className="fixed inset-x-0 bottom-0 z-50 flex items-baseline justify-between py-2"
-        accessToken={spotifyAccessToken ?? ""}
-        trackUri={playingTrack?.uri ?? ""}
-      /> */}
     </div>
   );
 }

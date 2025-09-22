@@ -1,35 +1,40 @@
-import { SoundCloudPaginatedResponse } from "@/types/soundcloud-paginated-response";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-export function usePaginatedFetch<T>(
-  fetchFn: (options?: {
-    next?: boolean;
-  }) => Promise<SoundCloudPaginatedResponse<T[]>>,
-  deps: any[] = [] // add deps here
-) {
+type Fetcher<T> = (opts?: { next?: boolean }) => Promise<{
+  collection: T[];
+  next_href?: string;
+}>;
+
+export function usePaginatedFetch<T>(fetcher: Fetcher<T>, deps: any[] = []) {
   const [data, setData] = useState<T[]>([]);
-  const [nextHref, setNextHref] = useState<string | undefined>();
+  const [nextHref, setNextHref] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchPage = async (options?: { next?: boolean }) => {
-    setIsLoading(true);
-    try {
-      const res = await fetchFn({ next: options?.next });
-      setData((prev) =>
-        options?.next ? [...prev, ...res.collection] : res.collection
-      );
-      setNextHref(res.next_href);
-    } catch (err) {
-      console.error("Paginated fetch failed:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const fetchPage = useCallback(
+    async (opts?: { next?: boolean }) => {
+      setIsLoading(true);
+      try {
+        const res = await fetcher(opts);
+        setData((prev) =>
+          opts?.next ? [...prev, ...res.collection] : res.collection
+        );
+        setNextHref(res.next_href);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [fetcher]
+  );
+
+  const reset = useCallback(() => {
+    setData([]);
+    setNextHref(undefined);
+  }, []);
 
   useEffect(() => {
     fetchPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  return { data, nextHref, isLoading, fetchPage };
+  return { data, nextHref, isLoading, fetchPage, reset };
 }
