@@ -82,76 +82,72 @@ export default function SoundCloudPlayer({
       onLoadStart();
 
       try {
+        // Step 1: Get available transcodings
         const response = await fetch(streamUrl, {
           headers: {
             Authorization: `OAuth ${accessToken}`,
             Accept: "application/json; charset=utf-8",
           },
-          redirect: "manual", // Don't follow redirects automatically
         });
 
         if (!response.ok) {
           throw new Error(`Failed to fetch stream: ${response.status}`);
         }
 
-        // Check content type to determine how to handle the response
-        const contentType = response.headers.get("content-type") || "";
+        const data: SoundCloudStreamResponse = await response.json();
 
-        if (contentType.includes("application/json")) {
-          // JSON response with transcoding options
-          const data: SoundCloudStreamResponse = await response.json();
+        if (data.collection && data.collection.length > 0) {
+          // Pick progressive mp3 first if available
+          const preferredTranscoding =
+            data.collection.find(
+              (t: SoundCloudTranscoding) =>
+                t.format?.protocol === "progressive" &&
+                t.format?.mime_type?.includes("mp3")
+            ) || data.collection[0];
 
-          // SoundCloud API returns transcodings - choose the best quality available
-          if (data.collection && data.collection.length > 0) {
-            // Prefer mp3 over other formats, and higher quality over lower
-            const preferredTranscoding =
-              data.collection.find(
-                (t: SoundCloudTranscoding) =>
-                  t.format?.protocol === "progressive" &&
-                  t.format?.mime_type?.includes("mp3")
-              ) || data.collection[0];
+          // Step 2: Resolve transcoding into a final playable URL
+          const resolveResp = await fetch(preferredTranscoding.url, {
+            headers: {
+              Authorization: `OAuth ${accessToken}`,
+            },
+          });
 
-            setActualStreamUrl(preferredTranscoding.url);
-          } else if (data.url) {
-            // Direct URL (less common)
-            setActualStreamUrl(data.url);
-          } else {
-            throw new Error("No playable stream found");
+          if (!resolveResp.ok) {
+            throw new Error(
+              `Failed to resolve transcoding: ${resolveResp.status}`
+            );
           }
-        } else if (contentType.includes("audio/") || response.status === 302) {
-          // Direct audio stream or redirect
-          if (response.status === 302) {
-            // Handle redirect manually
-            const redirectUrl = response.headers.get("location");
-            if (redirectUrl) {
-              setActualStreamUrl(redirectUrl);
-            } else {
-              throw new Error("Redirect location not found");
+
+          const resolveContentType =
+            resolveResp.headers.get("content-type") || "";
+
+          if (resolveContentType.includes("application/json")) {
+            // ✅ Normal case — JSON wrapper with a { url: "https://..." }
+            const resolveJson = await resolveResp.json();
+            if (!resolveJson.url) {
+              throw new Error("No playable URL found in transcoding response");
             }
+            setActualStreamUrl(resolveJson.url);
+          } else if (resolveContentType.startsWith("audio/")) {
+            // ✅ Rare case — direct audio instead of JSON
+            const blob = await resolveResp.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            setActualStreamUrl(objectUrl);
           } else {
-            // Direct audio stream
-            setActualStreamUrl(streamUrl);
+            throw new Error(`Unexpected response type: ${resolveContentType}`);
           }
+        } else if (data.url) {
+          // Rare: direct stream in first response
+          setActualStreamUrl(data.url);
         } else {
-          // Try to use the URL directly as a fallback
-          console.warn(
-            "Unexpected content type, trying direct stream:",
-            contentType
-          );
-          setActualStreamUrl(streamUrl);
+          throw new Error("No playable stream found");
         }
       } catch (err) {
-        // If JSON parsing fails, try using the URL directly
-        if (err instanceof Error && err.message.includes("JSON")) {
-          console.warn("JSON parsing failed, trying direct stream URL");
-          setActualStreamUrl(streamUrl);
-        } else {
-          const errorMessage =
-            err instanceof Error ? err.message : "Unknown error occurred";
-          setError(errorMessage);
-          onError(errorMessage);
-          console.error("Stream fetch error:", err);
-        }
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error occurred";
+        setError(errorMessage);
+        onError(errorMessage);
+        console.error("Stream fetch error:", err);
       } finally {
         setLoading(false);
         onLoadEnd();
