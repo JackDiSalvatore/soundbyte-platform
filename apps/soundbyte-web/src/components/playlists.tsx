@@ -30,8 +30,6 @@ export default function Playlists({
     );
   }
 
-  console.log(`hasMore: ${hasMore}`);
-
   return (
     <section className="max-w-5xl mx-auto mt-6">
       <h3 className="text-lg font-semibold mb-4">{title ?? "Playlists"}</h3>
