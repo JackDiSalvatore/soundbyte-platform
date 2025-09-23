@@ -77,7 +77,7 @@ export class StreamingProviderClient {
   ): Promise<void> {
     try {
       await axios.post(
-        `${this.baseUrl}/disconnect/userId/${userId}/provider/${provider}`,
+        `${this.baseUrl}/userId/${userId}/provider/${provider}/disconnect`,
         { provider, userId },
         { withCredentials: true }
       );

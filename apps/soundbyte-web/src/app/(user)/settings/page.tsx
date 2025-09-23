@@ -106,6 +106,7 @@ export default function Page() {
         message: `Disconnected from ${provider}`,
       });
 
+      //  TODO: change to useReducer?
       // Update local state immediately for better UX
       setConnectedStreamingProviders((prev) =>
         prev ? prev.filter((p) => p !== provider) : null
