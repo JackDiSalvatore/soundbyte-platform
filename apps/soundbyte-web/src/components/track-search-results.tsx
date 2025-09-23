@@ -1,14 +1,15 @@
+import { usePlayer } from "@/context/PlayerContext";
 import { SoundCloudTrack } from "@/types/soundcloud-playlist";
 
 export default function TrackSearchResult({
   track,
-  chooseTrack,
 }: {
   track: SoundCloudTrack;
-  chooseTrack: (track: SoundCloudTrack) => void;
 }) {
+  const { playTrack } = usePlayer();
+
   function handlePlay() {
-    chooseTrack(track);
+    playTrack(track);
   }
 
   return (
