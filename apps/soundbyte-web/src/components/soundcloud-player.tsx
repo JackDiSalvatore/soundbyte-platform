@@ -199,7 +199,7 @@ export default function SoundCloudPlayer({
 
   return (
     <main>
-      <div className="flex items-center justify-center gap-16 bg-white rounded-lg shadow-lg p-6 max-w-full mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 bg-white rounded-lg shadow-lg p-4 w-full max-w-6xl mx-auto">
         {/* Audio Element */}
         {actualStreamUrl && (
           <audio
@@ -219,8 +219,8 @@ export default function SoundCloudPlayer({
           />
         )}
 
-        {/* Artwork and Track Info */}
-        <div className="flex mb-4">
+        {/* Artwork + Track Info */}
+        <div className="flex items-center w-full md:w-auto">
           <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
             {artworkUrl ? (
               <img
@@ -235,7 +235,7 @@ export default function SoundCloudPlayer({
             )}
           </div>
           <div className="ml-4 flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-gray-900 truncate">
+            <h3 className="text-base md:text-lg font-semibold text-gray-900 truncate">
               {trackTitle}
             </h3>
             <p className="text-sm text-gray-600 truncate">{artistName}</p>
@@ -243,7 +243,7 @@ export default function SoundCloudPlayer({
         </div>
 
         {/* Progress Bar */}
-        <div className="w-3xl mb-4">
+        <div className="flex-1 w-full md:mx-6">
           <div
             ref={progressRef}
             className="w-full h-2 bg-gray-200 rounded-full cursor-pointer"
@@ -261,7 +261,7 @@ export default function SoundCloudPlayer({
         </div>
 
         {/* Controls */}
-        <div className="flex items-center justify-center space-x-4 mb-4">
+        <div className="flex items-center justify-center space-x-4">
           <button
             onClick={skipBackward}
             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -294,7 +294,7 @@ export default function SoundCloudPlayer({
         </div>
 
         {/* Volume Control */}
-        <div className="flex items-center space-x-2 mb-4">
+        <div className="flex items-center space-x-2 w-full md:w-40">
           <button onClick={toggleMute} className="p-1">
             {isMuted || volume === 0 ? (
               <VolumeX size={16} />
@@ -315,14 +315,14 @@ export default function SoundCloudPlayer({
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+          <div className="w-full bg-red-50 border border-red-200 rounded-lg p-3">
             <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
       </div>
 
-      {/* Attribution (Required by SoundCloud) */}
-      <div className="flex justify-between text-center border-t pt-3">
+      {/* Attribution */}
+      <div className="flex justify-between text-center border-t pt-3 max-w-6xl mx-auto">
         <p className="text-xs text-gray-500 mb-1">
           Powered by{" "}
           <a
