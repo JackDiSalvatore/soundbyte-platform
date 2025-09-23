@@ -60,26 +60,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     [search]
   );
 
-  // Handle playTrack changes
-  useEffect(() => {
-    if (!playingTrack) return;
-
-    console.log("Play your track here!", playingTrack);
-
-    // No playing
-  }, [playingTrack]);
-
   // Handle Search Songs Input Event
   const searchSongs = (value: string) => {
-    setSearch(value);
+    console.log("searching for:", value);
 
-    // reset results when search cleared
-    if (value.trim() === "") {
-      resetSearchResults();
-    }
+    setSearch(value);
   };
 
   function chooseTrack(track: SoundCloudTrack): void {
+    console.log("Playing track: ", track);
     setPlayingTrack(track);
     setSearch("");
   }
@@ -118,6 +107,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {playingTrack && soundCloudAccessToken && (
         <div className="fixed inset-x-0 bottom-0 z-50 bg-background/95 backdrop-blur border-t-2 p-4">
           <SoundCloudPlayer
+            key={playingTrack.id}
             streamUrl={
               playingTrack.stream_url ||
               `https://api.soundcloud.com/tracks/${playingTrack.id}/stream`
