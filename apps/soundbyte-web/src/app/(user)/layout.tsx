@@ -10,6 +10,7 @@ import { StreamingProviderClient } from "@/lib/streaming-provider-client";
 import { SoundCloudPaginatedResponse } from "@/types/soundcloud-paginated-response";
 import { SoundCloudTrack } from "@/types/soundcloud-playlist";
 import { usePaginatedFetch } from "@/hooks/use-paginated-fetch";
+import { PlayerProvider, usePlayer } from "@/context/PlayerContext";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { session, streamingCredentials, isPending } = useAuth();
@@ -67,12 +68,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     setSearch(value);
   };
 
-  function chooseTrack(track: SoundCloudTrack): void {
-    console.log("Playing track: ", track);
-    setPlayingTrack(track);
-    setSearch("");
-  }
-
   // Player event handlers
   const handlePlayerError = (error: string) => {
     console.error("SoundCloud Player Error:", error);
@@ -84,48 +79,59 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     // Optionally auto-play next track or reset player
   };
 
+  function PlayerOverlay({ accessToken }: { accessToken: string | null }) {
+    const { playingTrack, stop } = usePlayer();
+
+    if (!playingTrack || !accessToken) return null;
+
+    return (
+      <div className="fixed inset-x-0 bottom-0 z-50 bg-background/95 backdrop-blur border-t-2 p-4">
+        <SoundCloudPlayer
+          key={playingTrack.id}
+          streamUrl={
+            playingTrack.stream_url ||
+            `https://api.soundcloud.com/tracks/${playingTrack.id}/stream`
+          }
+          accessToken={accessToken}
+          trackTitle={playingTrack.title}
+          artistName={playingTrack.user?.username || "Unknown Artist"}
+          artworkUrl={playingTrack.artwork_url}
+          soundcloudUrl={playingTrack.permalink_url}
+          onError={handlePlayerError}
+          onEnded={handleTrackEnd}
+          onPlay={() => console.log(`Now playing: ${playingTrack.title}`)}
+          onPause={() => console.log(`Paused: ${playingTrack.title}`)}
+          onLoadStart={() => {}}
+          onLoadEnd={() => {}}
+        />
+      </div>
+    );
+  }
+
+  // Render page
+
   if (isPending) {
     return <div>Loading...</div>;
   }
 
   return (
     // parent is relative so fixed overlays are positioned relative to viewport as expected
-    <div className="relative min-h-screen">
-      {/* Fixed header overlay */}
-      <Header className="fixed inset-x-0 top-0 z-50 flex items-baseline justify-between border-b-2 p-2 bg-background/90 backdrop-blur">
-        <SearchInput
-          searchSongs={searchSongs}
-          searchResults={searchResults}
-          chooseTrack={chooseTrack}
-        />
-      </Header>
-
-      {/* Content area with top + bottom padding equal to header/footer heights to avoid overlap */}
-      <main className="pt-[64px] pb-[120px]">{children}</main>
-
-      {/* Fixed SoundCloud Player overlay - replaces Footer */}
-      {playingTrack && soundCloudAccessToken && (
-        <div className="fixed inset-x-0 bottom-0 z-50 bg-background/95 backdrop-blur border-t-2 p-4">
-          <SoundCloudPlayer
-            key={playingTrack.id}
-            streamUrl={
-              playingTrack.stream_url ||
-              `https://api.soundcloud.com/tracks/${playingTrack.id}/stream`
-            }
-            accessToken={soundCloudAccessToken}
-            trackTitle={playingTrack.title}
-            artistName={playingTrack.user?.username || "Unknown Artist"}
-            artworkUrl={playingTrack.artwork_url}
-            soundcloudUrl={playingTrack.permalink_url}
-            onError={handlePlayerError}
-            onEnded={handleTrackEnd}
-            onPlay={() => console.log(`Now playing: ${playingTrack.title}`)}
-            onPause={() => console.log(`Paused: ${playingTrack.title}`)}
-            onLoadStart={() => console.log("Load start")}
-            onLoadEnd={() => console.log("Load End")}
+    <PlayerProvider>
+      <div className="relative min-h-screen">
+        {/* Header overlay */}
+        <Header className="fixed inset-x-0 top-0 z-50 flex items-baseline justify-between border-b-2 p-2 bg-background/90 backdrop-blur">
+          <SearchInput
+            searchSongs={searchSongs}
+            searchResults={searchResults}
           />
-        </div>
-      )}
-    </div>
+        </Header>
+
+        {/* Content area with top + bottom padding equal to header/footer heights to avoid overlap */}
+        <main className="pt-[64px] pb-[120px]">{children}</main>
+
+        {/* Player/Footer overlay */}
+        <PlayerOverlay accessToken={soundCloudAccessToken} />
+      </div>
+    </PlayerProvider>
   );
 }

@@ -95,8 +95,6 @@ export default function SoundCloudPlayer({
           throw new Error(`Failed to fetch stream: ${response.status}`);
         }
 
-        console.log("response success!", response.status);
-
         if (response.status === 200) {
           // Pull full streaming url out of the response
           const realRedirectUrl = response.url;
