@@ -82,7 +82,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (!playingTrack || !accessToken) return null;
 
     return (
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-background/95 backdrop-blur border-t-2 p-4">
+      <div className="fixed inset-x-0 bottom-0 z-50 bg-background/95 backdrop-blur border-t-2 p-2">
         <SoundCloudPlayer
           key={playingTrack.id}
           streamUrl={

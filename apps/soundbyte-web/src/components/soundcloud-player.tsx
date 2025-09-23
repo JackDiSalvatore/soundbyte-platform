@@ -199,7 +199,7 @@ export default function SoundCloudPlayer({
 
   return (
     <main>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 bg-white rounded-lg shadow-lg p-4 w-full max-w-6xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 p-2 w-full max-w-6xl mx-auto">
         {/* Audio Element */}
         {actualStreamUrl && (
           <audio
@@ -322,8 +322,8 @@ export default function SoundCloudPlayer({
       </div>
 
       {/* Attribution */}
-      <div className="flex justify-between text-center border-t pt-3 max-w-6xl mx-auto">
-        <p className="text-xs text-gray-500 mb-1">
+      <div className="flex justify-between text-center pt-1 px-3 max-w-6xl mx-auto">
+        <p className="text-xs text-gray-500">
           Powered by{" "}
           <a
             href="https://soundcloud.com"
