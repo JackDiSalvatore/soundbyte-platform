@@ -27,6 +27,7 @@ export default function SearchInput({
   return (
     <div className="w-1/2 m-auto my-2 relative">
       <Input onChange={handleChange} placeholder="Search Songs/Artists" />
+
       {searchResults.length > 0 && (
         <div className="absolute left-0 right-0 mt-2 bg-white shadow-lg rounded z-10 max-h-80 overflow-y-auto border">
           {searchResults.map((track) => (
