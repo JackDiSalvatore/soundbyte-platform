@@ -13,7 +13,6 @@ import { SoundCloudOAuthService } from '../services/soundcloud-oauth-service';
 import { ApiTags } from '@nestjs/swagger';
 import { upsertCredentials } from '../db/provider-credentials';
 import { CredentialService } from '../services/credential-service';
-import { CreateProviderCredentialsDto } from '../dto/create-provider-credential.dto';
 
 @ApiTags('SoundCloudAuth')
 @Controller('auth/soundcloud')

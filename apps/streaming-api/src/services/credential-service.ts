@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { getCredentials, upsertCredentials } from '../db/provider-credentials';
+import {
+  deleteCredentials,
+  getCredentials,
+  upsertCredentials,
+} from '../db/provider-credentials';
 import { SoundCloudOAuthService } from './soundcloud-oauth-service';
 import { CreateProviderCredentialsDto } from '../dto/create-provider-credential.dto';
 
@@ -37,5 +41,20 @@ export class CredentialService {
     }
 
     return credentials;
+  }
+
+  async removeCredentials({ userId, provider }): Promise<boolean> {
+    let credentials = await getCredentials({
+      userId,
+      provider,
+    });
+
+    // Check if credentials exist
+    if (credentials) {
+      await deleteCredentials({ userId, provider });
+      return true;
+    }
+
+    return false;
   }
 }

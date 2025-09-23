@@ -1,12 +1,25 @@
-import { Controller, Get, Req, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Req,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { SpotifyOAuthService } from '../services/spotify-oauth-service';
 import { ApiTags } from '@nestjs/swagger';
+import { CredentialService } from '../services/credential-service';
 
 // Combined API Controller for both providers
 @ApiTags('api')
 @Controller('api')
 export class StreamingProviderApiController {
-  constructor(private readonly spotifyService: SpotifyOAuthService) {}
+  constructor(
+    private readonly spotifyService: SpotifyOAuthService,
+    private readonly credentialService: CredentialService,
+  ) {}
 
   @Get()
   getInfo(@Req() req: Request) {
@@ -81,5 +94,37 @@ export class StreamingProviderApiController {
       connected: hasToken,
       provider: 'soundcloud',
     };
+  }
+
+  /**
+   * Delete provider credentials
+   * DELETE /api/userId/XC12abc/provider/soundcloud/disconnect
+   */
+  @Delete('/userId/:userId/provider/:provider/disconnect')
+  async disconnect(
+    @Param('userId') userId: string,
+    @Param('provider') provider: string,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    try {
+      console.debug('userId: ', userId);
+
+      const success = await this.credentialService.removeCredentials({
+        userId,
+        provider,
+      });
+
+      if (!success) {
+        // throw new BadRequestException('Credendials not available');
+      }
+
+      return;
+    } catch (error) {
+      console.error('SoundCloud Credentials error:', error);
+      // res.status(HttpStatus.NOT_FOUND).json({
+      //   error: 'Failed to delete SoundCloud credentials',
+      // });
+    }
   }
 }
