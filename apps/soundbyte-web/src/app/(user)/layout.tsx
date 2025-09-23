@@ -20,9 +20,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   >(null);
 
   const [search, setSearch] = useState("");
-  const [playingTrack, setPlayingTrack] = useState<SoundCloudTrack | undefined>(
-    undefined
-  );
 
   useEffect(() => {
     if (!streamingCredentials) return;
