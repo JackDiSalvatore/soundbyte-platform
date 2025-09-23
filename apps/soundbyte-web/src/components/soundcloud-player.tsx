@@ -8,25 +8,6 @@ import {
   SkipForward,
 } from "lucide-react";
 
-// SoundCloud API response types
-interface SoundCloudTranscoding {
-  url: string;
-  preset: string;
-  duration: number;
-  snipped: boolean;
-  format: {
-    protocol: string;
-    mime_type: string;
-  };
-  quality: string;
-}
-
-interface SoundCloudStreamResponse {
-  url?: string;
-  collection?: SoundCloudTranscoding[];
-}
-
-// Component props interface
 interface SoundCloudPlayerProps {
   streamUrl: string;
   accessToken: string;
@@ -34,6 +15,7 @@ interface SoundCloudPlayerProps {
   artistName?: string;
   artworkUrl?: string | null;
   soundcloudUrl?: string;
+  autoPlay?: boolean;
   onPlay?: () => void;
   onPause?: () => void;
   onEnded?: () => void;
@@ -43,8 +25,6 @@ interface SoundCloudPlayerProps {
   onLoadEnd?: () => void;
 }
 
-// --
-
 export default function SoundCloudPlayer({
   streamUrl,
   accessToken,
@@ -52,6 +32,7 @@ export default function SoundCloudPlayer({
   artistName = "Unknown Artist",
   artworkUrl = null,
   soundcloudUrl = "#",
+  autoPlay = false,
   onPlay = () => {},
   onPause = () => {},
   onEnded = () => {},
@@ -82,13 +63,12 @@ export default function SoundCloudPlayer({
       onLoadStart();
 
       try {
-        // Step 1: Get available transcodings
         const response = await fetch(streamUrl, {
           headers: {
             Authorization: `OAuth ${accessToken}`,
             Accept: "application/json; charset=utf-8",
           },
-          redirect: "follow", // allow automatic redirect
+          redirect: "follow",
         });
 
         if (!response.ok) {
@@ -98,7 +78,6 @@ export default function SoundCloudPlayer({
         if (response.status === 200) {
           // Pull full streaming url out of the response
           const realRedirectUrl = response.url;
-          //   console.log("realRedirectUrl:", realRedirectUrl);
           setActualStreamUrl(realRedirectUrl);
         }
       } catch (err) {
@@ -115,6 +94,23 @@ export default function SoundCloudPlayer({
 
     fetchStreamUrl();
   }, [streamUrl, accessToken, onLoadStart, onLoadEnd, onError]);
+
+  // Auto-play when a new URL is ready
+  useEffect(() => {
+    if (autoPlay && actualStreamUrl && audioRef.current) {
+      audioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          onPlay();
+        })
+        .catch((err: Error) => {
+          const errorMessage = "Autoplay failed: " + err.message;
+          setError(errorMessage);
+          onError(errorMessage);
+        });
+    }
+  }, [autoPlay, actualStreamUrl, onPlay, onError]);
 
   const togglePlay = (): void => {
     if (!audioRef.current || !actualStreamUrl) return;

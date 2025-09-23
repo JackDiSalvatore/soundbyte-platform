@@ -77,7 +77,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   function PlayerOverlay({ accessToken }: { accessToken: string | null }) {
-    const { playingTrack, stop } = usePlayer();
+    const { playingTrack, autoPlay, stop } = usePlayer();
 
     if (!playingTrack || !accessToken) return null;
 
@@ -100,6 +100,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           onPause={() => console.log(`Paused: ${playingTrack.title}`)}
           onLoadStart={() => {}}
           onLoadEnd={() => {}}
+          autoPlay={autoPlay}
         />
       </div>
     );
