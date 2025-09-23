@@ -198,126 +198,128 @@ export default function SoundCloudPlayer({
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
-      {/* Audio Element */}
-      {actualStreamUrl && (
-        <audio
-          ref={audioRef}
-          src={actualStreamUrl}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onEnded={() => {
-            setIsPlaying(false);
-            onEnded();
-          }}
-          onError={() => {
-            const errorMessage = "Audio playback error";
-            setError(errorMessage);
-            onError(errorMessage);
-          }}
-        />
-      )}
+    <main>
+      <div className="flex items-center justify-center gap-16 bg-white rounded-lg shadow-lg p-6 max-w-full mx-auto">
+        {/* Audio Element */}
+        {actualStreamUrl && (
+          <audio
+            ref={audioRef}
+            src={actualStreamUrl}
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleLoadedMetadata}
+            onEnded={() => {
+              setIsPlaying(false);
+              onEnded();
+            }}
+            onError={() => {
+              const errorMessage = "Audio playback error";
+              setError(errorMessage);
+              onError(errorMessage);
+            }}
+          />
+        )}
 
-      {/* Artwork and Track Info */}
-      <div className="flex items-center mb-4">
-        <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
-          {artworkUrl ? (
-            <img
-              src={artworkUrl}
-              alt="Track artwork"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="w-8 h-8 bg-orange-500 rounded"></div>
-            </div>
-          )}
+        {/* Artwork and Track Info */}
+        <div className="flex mb-4">
+          <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+            {artworkUrl ? (
+              <img
+                src={artworkUrl}
+                alt="Track artwork"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-orange-500 rounded"></div>
+              </div>
+            )}
+          </div>
+          <div className="ml-4 flex-1 min-w-0">
+            <h3 className="text-lg font-semibold text-gray-900 truncate">
+              {trackTitle}
+            </h3>
+            <p className="text-sm text-gray-600 truncate">{artistName}</p>
+          </div>
         </div>
-        <div className="ml-4 flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 truncate">
-            {trackTitle}
-          </h3>
-          <p className="text-sm text-gray-600 truncate">{artistName}</p>
-        </div>
-      </div>
 
-      {/* Progress Bar */}
-      <div className="mb-4">
-        <div
-          ref={progressRef}
-          className="w-full h-2 bg-gray-200 rounded-full cursor-pointer"
-          onClick={handleSeek}
-        >
+        {/* Progress Bar */}
+        <div className="w-3xl mb-4">
           <div
-            className="h-full bg-orange-500 rounded-full transition-all duration-100"
-            style={{ width: `${progressPercentage}%` }}
-          ></div>
+            ref={progressRef}
+            className="w-full h-2 bg-gray-200 rounded-full cursor-pointer"
+            onClick={handleSeek}
+          >
+            <div
+              className="h-full bg-orange-500 rounded-full transition-all duration-100"
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+          </div>
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
         </div>
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
+
+        {/* Controls */}
+        <div className="flex items-center justify-center space-x-4 mb-4">
+          <button
+            onClick={skipBackward}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            disabled={loading || !!error}
+          >
+            <SkipBack size={20} />
+          </button>
+
+          <button
+            onClick={togglePlay}
+            disabled={loading || !!error || !actualStreamUrl}
+            className="p-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : isPlaying ? (
+              <Pause size={24} />
+            ) : (
+              <Play size={24} className="ml-0.5" />
+            )}
+          </button>
+
+          <button
+            onClick={skipForward}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            disabled={loading || !!error}
+          >
+            <SkipForward size={20} />
+          </button>
         </div>
-      </div>
 
-      {/* Controls */}
-      <div className="flex items-center justify-center space-x-4 mb-4">
-        <button
-          onClick={skipBackward}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-          disabled={loading || !!error}
-        >
-          <SkipBack size={20} />
-        </button>
-
-        <button
-          onClick={togglePlay}
-          disabled={loading || !!error || !actualStreamUrl}
-          className="p-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? (
-            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          ) : isPlaying ? (
-            <Pause size={24} />
-          ) : (
-            <Play size={24} className="ml-0.5" />
-          )}
-        </button>
-
-        <button
-          onClick={skipForward}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-          disabled={loading || !!error}
-        >
-          <SkipForward size={20} />
-        </button>
-      </div>
-
-      {/* Volume Control */}
-      <div className="flex items-center space-x-2 mb-4">
-        <button onClick={toggleMute} className="p-1">
-          {isMuted || volume === 0 ? (
-            <VolumeX size={16} />
-          ) : (
-            <Volume2 size={16} />
-          )}
-        </button>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.1"
-          value={isMuted ? 0 : volume}
-          onChange={handleVolumeChange}
-          className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-        />
-      </div>
-
-      {/* Error Display */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          <p className="text-sm text-red-700">{error}</p>
+        {/* Volume Control */}
+        <div className="flex items-center space-x-2 mb-4">
+          <button onClick={toggleMute} className="p-1">
+            {isMuted || volume === 0 ? (
+              <VolumeX size={16} />
+            ) : (
+              <Volume2 size={16} />
+            )}
+          </button>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={isMuted ? 0 : volume}
+            onChange={handleVolumeChange}
+            className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          />
         </div>
-      )}
+
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+      </div>
 
       {/* Attribution (Required by SoundCloud) */}
       <div className="flex justify-between text-center border-t pt-3">
@@ -339,6 +341,6 @@ export default function SoundCloudPlayer({
           View on SoundCloud
         </a>
       </div>
-    </div>
+    </main>
   );
 }
