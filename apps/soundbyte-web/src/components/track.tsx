@@ -2,27 +2,13 @@
 
 import React from "react";
 import { SoundCloudTrack } from "@/types/soundcloud-playlist";
+import { usePlayer } from "@/context/PlayerContext";
 
-export default function Track({
-  track,
-  onPlay,
-}: {
-  track: SoundCloudTrack;
-  onPlay?: (track: {
-    artist: string;
-    title: string;
-    uri: string;
-    albumUrl: string;
-  }) => void;
-}) {
+export default function Track({ track }: { track: SoundCloudTrack }) {
+  const { playTrack } = usePlayer();
+
   function handlePlay() {
-    if (!onPlay) return;
-    onPlay({
-      artist: track.user?.username ?? track.user?.full_name ?? "",
-      title: track.title,
-      uri: track.uri,
-      albumUrl: track.artwork_url ?? "/file.svg",
-    });
+    playTrack(track);
   }
 
   return (
