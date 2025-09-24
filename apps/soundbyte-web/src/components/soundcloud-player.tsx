@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Play,
   Pause,
@@ -52,6 +52,13 @@ export default function SoundCloudPlayer({
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
+  const prevStreamUrl = useRef<string | null>(null);
+
+  // Memoize callback functions to prevent infinite useEffect loops
+  const memoizedOnPlay = useCallback(onPlay, []);
+  const memoizedOnError = useCallback(onError, []);
+  const memoizedOnLoadStart = useCallback(onLoadStart, []);
+  const memoizedOnLoadEnd = useCallback(onLoadEnd, []);
 
   // Fetch actual stream URL from SoundCloud API
   useEffect(() => {
@@ -60,7 +67,7 @@ export default function SoundCloudPlayer({
 
       setLoading(true);
       setError(null);
-      onLoadStart();
+      memoizedOnLoadStart();
 
       try {
         const response = await fetch(streamUrl, {
@@ -84,33 +91,42 @@ export default function SoundCloudPlayer({
         const errorMessage =
           err instanceof Error ? err.message : "Unknown error occurred";
         setError(errorMessage);
-        onError(errorMessage);
+        memoizedOnError(errorMessage);
         console.error("Stream fetch error:", err);
       } finally {
         setLoading(false);
-        onLoadEnd();
+        memoizedOnLoadEnd();
       }
     };
 
     fetchStreamUrl();
-  }, [streamUrl, accessToken, onLoadStart, onLoadEnd, onError]);
+  }, [
+    streamUrl,
+    accessToken,
+    memoizedOnLoadStart,
+    memoizedOnLoadEnd,
+    memoizedOnError,
+  ]);
 
   // Auto-play when a new URL is ready
   useEffect(() => {
-    if (autoPlay && actualStreamUrl && audioRef.current) {
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          onPlay();
-        })
-        .catch((err: Error) => {
-          const errorMessage = "Autoplay failed: " + err.message;
-          setError(errorMessage);
-          onError(errorMessage);
-        });
-    }
-  }, [autoPlay, actualStreamUrl, onPlay, onError]);
+    if (!autoPlay || !actualStreamUrl || !audioRef.current) return;
+    if (prevStreamUrl.current === actualStreamUrl) return;
+
+    prevStreamUrl.current = actualStreamUrl;
+
+    audioRef.current
+      .play()
+      .then(() => {
+        setIsPlaying(true);
+        memoizedOnPlay();
+      })
+      .catch((err: Error) => {
+        const errorMessage = "Autoplay failed: " + err.message;
+        setError(errorMessage);
+        memoizedOnError(errorMessage);
+      });
+  }, [autoPlay, actualStreamUrl, memoizedOnPlay, memoizedOnError]);
 
   const togglePlay = (): void => {
     if (!audioRef.current || !actualStreamUrl) return;

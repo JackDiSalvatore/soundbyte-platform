@@ -1,4 +1,5 @@
-import { usePlayer } from "@/context/PlayerContext";
+import { usePlayer } from "@/context/PlayerProvider";
+import { useSearch } from "@/context/SearchProvider";
 import { SoundCloudTrack } from "@/types/soundcloud-playlist";
 
 export default function TrackSearchResult({
@@ -7,9 +8,11 @@ export default function TrackSearchResult({
   track: SoundCloudTrack;
 }) {
   const { playTrack } = usePlayer();
+  const { resetSearch } = useSearch();
 
   function handlePlay() {
     playTrack(track);
+    resetSearch();
   }
 
   return (

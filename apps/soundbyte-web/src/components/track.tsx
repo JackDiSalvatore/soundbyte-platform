@@ -2,7 +2,7 @@
 
 import React from "react";
 import { SoundCloudTrack } from "@/types/soundcloud-playlist";
-import { usePlayer } from "@/context/PlayerContext";
+import { usePlayer } from "@/context/PlayerProvider";
 
 export default function Track({ track }: { track: SoundCloudTrack }) {
   const { playTrack } = usePlayer();
