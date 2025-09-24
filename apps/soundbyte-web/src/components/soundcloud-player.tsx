@@ -341,7 +341,7 @@ export default function SoundCloudPlayer({
       </div>
 
       {/* Attribution */}
-      <div className="flex justify-between text-center pt-1 px-3 max-w-6xl mx-auto">
+      <div className="flex justify-between text-center pt-1 px-3 max-w-7xl mx-auto">
         <p className="text-xs text-gray-500">
           Powered by{" "}
           <a
