@@ -250,11 +250,14 @@ export default function SoundCloudPlayer({
               </div>
             )}
           </div>
+
           <div className="ml-4 flex-1 min-w-0">
             <h3 className="text-base md:text-lg font-semibold text-gray-900 truncate">
-              {trackTitle}
+              {trackTitle.slice(0, 20)}
             </h3>
-            <p className="text-sm text-gray-600 truncate">{artistName}</p>
+            <p className="text-sm text-gray-600 truncate">
+              {artistName.slice(0, 20)}
+            </p>
           </div>
         </div>
 

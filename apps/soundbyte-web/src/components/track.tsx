@@ -37,17 +37,19 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
 
       {/* Body */}
       <div className="p-3 flex flex-col gap-2">
-        {/* Title */}
-        <div
-          className="text-sm font-semibold text-gray-900 truncate"
-          onClick={handlePlay}
-        >
-          {track.title}
-        </div>
+        <div className="flex flex-col">
+          {/* Title */}
+          <div
+            className="text-sm font-semibold text-gray-900 truncate"
+            onClick={handlePlay}
+          >
+            {track.title}
+          </div>
 
-        {/* Username */}
-        <div className="text-xs text-gray-600 truncate">
-          {track.user?.username ?? track.user?.full_name}
+          {/* Username */}
+          <div className="text-xs text-gray-600 truncate">
+            {track.user?.username ?? track.user?.full_name}
+          </div>
         </div>
 
         {/* Stats */}
