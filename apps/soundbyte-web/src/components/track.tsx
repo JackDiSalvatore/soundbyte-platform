@@ -4,6 +4,13 @@ import React from "react";
 import { SoundCloudTrack } from "@/types/soundcloud-playlist";
 import { usePlayer } from "@/context/PlayerProvider";
 
+function formatTime(totalSeconds: number): string {
+  if (!totalSeconds || isNaN(totalSeconds)) return "0:00";
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
 export default function Track({ track }: { track: SoundCloudTrack }) {
   const { playTrack } = usePlayer();
 
@@ -31,7 +38,7 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
       </div>
 
       <div className="ml-auto text-xs text-muted-foreground">
-        {Math.ceil((track.duration ?? 0) / 1000)}s
+        {formatTime(Math.ceil((track.duration ?? 0) / 1000))}
       </div>
     </div>
   );
