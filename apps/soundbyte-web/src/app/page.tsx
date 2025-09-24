@@ -9,7 +9,7 @@ import { Music } from "lucide-react";
 import { useAuth } from "@/context/AuthProvider";
 
 export default function Page() {
-  const { session, accessToken, isPending } = useAuth();
+  const { session, isPending } = useAuth();
 
   if (session) {
     redirect("/library");
