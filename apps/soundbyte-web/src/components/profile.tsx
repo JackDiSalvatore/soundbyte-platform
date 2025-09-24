@@ -98,7 +98,7 @@ export default function Profile({ profile }: Props) {
                 href={profile.permalink_url ?? "#"}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:brightness-95"
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-orange-500 text-primary-foreground text-sm font-medium hover:brightness-9"
               >
                 View on SoundCloud
               </Link>
