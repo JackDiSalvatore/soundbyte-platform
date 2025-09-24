@@ -33,7 +33,7 @@ export default function Page() {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.8 }}
-        className="text-lg text-gray-300 mb-12 text-center max-w-xl"
+        className="text-lg text-gray-800 mb-12 text-center max-w-xl"
       >
         Stream your favorite tracks. Share your vibe. Connect with the world
         through music.
