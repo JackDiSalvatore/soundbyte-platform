@@ -5,15 +5,54 @@ import Link from "next/link";
 
 type SoundCloudProfile = {
   avatar_url?: string;
+  id?: number;
+  urn?: string;
+  kind?: string;
+  permalink_url?: string;
+  uri?: string;
   username?: string;
+  permalink?: string;
+  created_at?: string;
+  last_modified?: string;
+  first_name?: string;
+  last_name?: string;
   full_name?: string;
   city?: string;
-  country?: string;
   description?: string;
-  followers_count?: number;
+  country?: string;
   track_count?: number;
   public_favorites_count?: number;
-  permalink_url?: string;
+  reposts_count?: number;
+  followers_count?: number;
+  followings_count?: number;
+  plan?: string;
+  myspace_name?: string | null;
+  discogs_name?: string | null;
+  website_title?: string | null;
+  website?: string | null;
+  comments_count?: number;
+  online?: boolean;
+  likes_count?: number;
+  playlist_count?: number;
+  subscriptions?: [
+    {
+      product: {
+        id: string;
+        name: string;
+      };
+      recurring: boolean;
+    },
+  ];
+  quota?: {
+    unlimited_upload_quota?: boolean;
+    upload_seconds_used?: number;
+    upload_seconds_left?: number | string | null;
+  };
+  private_tracks_count?: number;
+  private_playlists_count?: number;
+  primary_email_confirmed?: boolean;
+  locale?: string;
+  upload_seconds_left?: string | number | null;
 };
 
 type Props = {
@@ -85,10 +124,11 @@ export default function Profile({ profile }: Props) {
               <p className="text-sm text-muted-foreground">No bio provided.</p>
             )}
 
-            <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+            <div className="mt-4 grid grid-cols-4 gap-3 text-center">
               <Stat label="Followers" value={profile.followers_count ?? 0} />
               <Stat label="Tracks" value={profile.track_count ?? 0} />
               <Stat label="Likes" value={profile.public_favorites_count ?? 0} />
+              <Stat label="Reposts" value={profile.reposts_count ?? 0} />
             </div>
           </div>
         </div>
