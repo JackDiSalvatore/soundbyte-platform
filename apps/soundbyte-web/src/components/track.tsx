@@ -57,12 +57,12 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
           {/* Reposts + Likes row */}
           <div className="flex justify-between">
             <div className="flex gap-1 items-center">
-              <Repeat className="w-4 h-4 text-gray-400 hover:text-orange-500 transition-colors" />
+              <Repeat className="w-4 h-4 text-gray-400" />
               <span>{track.reposts_count}</span>
             </div>
 
             <div className="flex gap-1 items-center">
-              <Heart className="w-4 h-4 text-gray-400 hover:text-red-600 transition-colors" />
+              <Heart className="w-4 h-4" fill="#99a1af" strokeWidth={0} />
               <span>{track.favoritings_count?.toLocaleString("en-US")}</span>
             </div>
           </div>
@@ -70,7 +70,11 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
           {/* Plays + Comments row */}
           <div className="flex justify-between">
             <div className="flex gap-1 items-center">
-              <Play className="w-4 h-4 text-gray-400" />
+              <Play
+                className="w-4 h-4 text-gray-400"
+                fill="#99a1af"
+                strokeWidth={0}
+              />
               <span>{track.playback_count?.toLocaleString("en-US")}</span>
             </div>
 
