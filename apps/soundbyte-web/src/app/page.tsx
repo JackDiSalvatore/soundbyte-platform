@@ -16,7 +16,7 @@ export default function Page() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black">
       {/* Logo */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
