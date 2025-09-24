@@ -20,58 +20,66 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
   }
 
   return (
-    <div className="flex items-center gap-3 p-2 rounded hover:bg-accent/20 cursor-pointer">
+    <article className="bg-card/60 backdrop-blur-md border border-border rounded-xl p-2 shadow hover:shadow-lg transition-shadow cursor-pointer overflow-hidden">
       {/* Artwork */}
-      <img
-        src={track.artwork_url ?? "/file.svg"}
-        alt={track.title}
-        className="w-12 h-12 rounded-md object-cover"
-        onClick={handlePlay}
-      />
+      <div className="w-full aspect-square bg-gray-100 rounded-xl">
+        <img
+          src={
+            track.artwork_url?.replace("-large", "-t200x200") ??
+            track.user.avatar_url?.replace("-large", "-t200x200") ??
+            "/file.svg"
+          }
+          alt={track.title}
+          className="w-full h-full rounded-xl object-cover"
+          onClick={handlePlay}
+        />
+      </div>
 
-      {/* Title + Artist */}
-      <div className="min-w-0" onClick={handlePlay}>
-        <div className="text-sm font-medium truncate">{track.title}</div>
-        <div className="text-xs text-muted-foreground truncate">
+      {/* Body */}
+      <div className="p-3 flex flex-col gap-2">
+        {/* Title */}
+        <div
+          className="text-sm font-semibold text-gray-900 truncate"
+          onClick={handlePlay}
+        >
+          {track.title}
+        </div>
+
+        {/* Username */}
+        <div className="text-xs text-gray-600 truncate">
           {track.user?.username ?? track.user?.full_name}
         </div>
-      </div>
 
-      {/* Stats container */}
-      <div className="ml-auto flex flex-col items-end gap-2 text-xs text-muted-foreground">
-        {/* Reposts + Likes row */}
-        <div className="flex gap-4 items-center">
-          {/* Reposts */}
-          <div className="flex gap-1 items-center">
-            <div>{track.reposts_count}</div>
-            <button className="text-gray-400 hover:text-orange-500 transition-colors">
-              <Repeat className="w-4 h-4" />
-            </button>
+        {/* Stats */}
+        <div className="mt-2 flex flex-col gap-2 text-xs text-gray-700">
+          {/* Reposts + Likes row */}
+          <div className="flex justify-between">
+            <div className="flex gap-1 items-center">
+              <Repeat className="w-4 h-4 text-gray-400 hover:text-orange-500 transition-colors" />
+              <span>{track.reposts_count}</span>
+            </div>
+
+            <div className="flex gap-1 items-center">
+              <Heart className="w-4 h-4 text-gray-400 hover:text-red-600 transition-colors" />
+              <span>{track.favoritings_count?.toLocaleString("en-US")}</span>
+            </div>
           </div>
 
-          {/* Likes */}
-          <div className="flex gap-1 items-center">
-            <div>{track.favoritings_count?.toLocaleString("en-US")}</div>
-            <button className="text-gray-400 hover:text-red-600 transition-colors">
-              <Heart className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+          {/* Plays + Comments row */}
+          <div className="flex justify-between">
+            <div className="flex gap-1 items-center">
+              <Play className="w-4 h-4 text-gray-400" />
+              <span>{track.playback_count?.toLocaleString("en-US")}</span>
+            </div>
 
-        {/* Play & Comment count below */}
-        <div className="ml-auto flex items-end gap-2 text-xs text-muted-foreground">
-          <div className="flex gap-1 items-center">
-            <Play className="w-4 h-4 text-gray-400" />
-            <div>{track.playback_count?.toLocaleString("en-US")}</div>
-          </div>
-
-          <div className="flex gap-1 items-center">
-            <MessageSquareText className="w-4 h-4 text-gray-400" />
-            <div>{track.comment_count?.toLocaleString("en-US")}</div>
+            <div className="flex gap-1 items-center">
+              <MessageSquareText className="w-4 h-4 text-gray-400" />
+              <span>{track.comment_count?.toLocaleString("en-US")}</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 

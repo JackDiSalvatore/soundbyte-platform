@@ -30,14 +30,9 @@ export default function Tracks({
     <section className="max-w-5xl mx-auto mt-6">
       <h3 className="text-lg font-semibold mb-4">{title ?? "Tracks"}: </h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {tracks.map((t: SoundCloudTrack) => (
-          <article
-            key={t.id ?? t.permalink_url}
-            className="bg-card/60 backdrop-blur-md border border-border rounded-xl p-4 shadow"
-          >
-            <Track key={t.id ?? t.uri} track={t} />
-          </article>
+          <Track key={t.id ?? t.uri} track={t} />
         ))}
       </div>
 
