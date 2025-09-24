@@ -27,7 +27,7 @@ export default function Tracks({
   }
 
   return (
-    <section className="max-w-5xl mx-auto mt-6">
+    <section className="max-w-7xl mx-auto mt-6">
       <h3 className="text-lg font-semibold mb-4">{title ?? "Tracks"}: </h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4">

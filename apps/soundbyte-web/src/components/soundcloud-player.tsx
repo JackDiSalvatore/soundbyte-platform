@@ -215,7 +215,7 @@ export default function SoundCloudPlayer({
 
   return (
     <main>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 p-2 w-full max-w-6xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 p-2 w-full max-w-7xl mx-auto">
         {/* Audio Element */}
         {actualStreamUrl && (
           <audio
