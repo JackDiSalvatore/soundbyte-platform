@@ -335,7 +335,7 @@ export default function SoundCloudPlayer({
             step="0.1"
             value={isMuted ? 0 : volume}
             onChange={handleVolumeChange}
-            className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            className="flex-1 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointe accent-orange-500"
           />
         </div>
 
