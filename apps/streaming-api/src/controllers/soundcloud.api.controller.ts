@@ -115,6 +115,25 @@ export class SoundCloudApiController {
     return this.fetchFromSoundCloud(userId, url);
   }
 
+  @Get('/userId/:userId/tracks/likes')
+  @ApiQuery({ name: 'next_href', required: false })
+  async getLikedTracks(
+    @Param('userId') userId: string,
+    @Query('limit') limitRaw?: string,
+    @Query('next_href') nextHref?: string,
+  ): Promise<NormalizedResponse> {
+    const limit = parseInt(limitRaw || '') || this.DEFAULT_LIMITS.likes;
+
+    const url = this.buildUrl(
+      'https://api.soundcloud.com/me/likes/tracks',
+      nextHref,
+      limit,
+    );
+
+    const data = await this.fetchFromSoundCloud(userId, url);
+    return this.normalize(data);
+  }
+
   @Get('/userId/:userId/users/:providerUserId/tracks')
   @ApiResponse({ status: 200, description: 'User' })
   async getUserTracks(
@@ -199,25 +218,6 @@ export class SoundCloudApiController {
 
     const url = this.buildUrl(
       'https://api.soundcloud.com/me/tracks',
-      nextHref,
-      limit,
-    );
-
-    const data = await this.fetchFromSoundCloud(userId, url);
-    return this.normalize(data);
-  }
-
-  @Get('/userId/:userId/tracks/likes')
-  @ApiQuery({ name: 'next_href', required: false })
-  async getLikedTracks(
-    @Param('userId') userId: string,
-    @Query('limit') limitRaw?: string,
-    @Query('next_href') nextHref?: string,
-  ): Promise<NormalizedResponse> {
-    const limit = parseInt(limitRaw || '') || this.DEFAULT_LIMITS.likes;
-
-    const url = this.buildUrl(
-      'https://api.soundcloud.com/me/likes/tracks',
       nextHref,
       limit,
     );
