@@ -67,11 +67,11 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
     : [];
 
   return (
-    <div className="max-w-7xl mx-auto bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-2xl overflow-hidden shadow-2xl">
+    <div className="max-w-7xl mx-auto bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-2xl overflow-hidden shadow-2xl">
       {/* Header Section */}
       <div className="relative">
         {/* Background blur effect */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/60 to-transparent z-10" />
 
         {/* Artwork Background */}
         {track.artwork_url && (
@@ -113,9 +113,9 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
             </div>
 
             {/* Track Info */}
-            <div className="flex-1 text-white">
+            <div className="flex-1 text-gray-900">
               <div className="mb-4">
-                <span className="inline-block px-3 py-1 bg-orange-500/20 text-orange-300 text-sm rounded-full mb-3">
+                <span className="inline-block px-3 py-1 bg-orange-500/20 text-orange-700 text-sm rounded-full mb-3">
                   {track.genre || "Music"}
                 </span>
 
@@ -190,8 +190,8 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
                   onClick={handleLike}
                   className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-colors duration-200 ${
                     isLiked
-                      ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                      : "bg-white/10 text-white border border-white/20 hover:bg-white/20"
+                      ? "bg-red-500/20 text-red-600 border border-red-500/30"
+                      : "bg-gray-200 text-gray-700 border border-gray-300 hover:bg-gray-300"
                   }`}
                 >
                   <Heart
@@ -201,13 +201,13 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
                   Like
                 </button>
 
-                <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-6 py-3 rounded-full text-white font-semibold transition-colors duration-200 border border-white/20">
+                <button className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 px-6 py-3 rounded-full text-gray-700 font-semibold transition-colors duration-200 border border-gray-300">
                   <Share2 className="w-5 h-5" />
                   Share
                 </button>
 
                 {track.downloadable && (
-                  <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-6 py-3 rounded-full text-white font-semibold transition-colors duration-200 border border-white/20">
+                  <button className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 px-6 py-3 rounded-full text-gray-700 font-semibold transition-colors duration-200 border border-gray-300">
                     <Download className="w-5 h-5" />
                     Download
                   </button>
@@ -219,14 +219,16 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
       </div>
 
       {/* Content Section */}
-      <div className="p-8">
+      <div className="p-8 bg-gray-50/50">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Description */}
           <div className="lg:col-span-2">
             {track.description && (
               <div className="mb-6">
-                <h3 className="text-xl font-semibold mb-3">About this track</h3>
-                <div className="leading-relaxed">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  About this track
+                </h3>
+                <div className="text-gray-700 leading-relaxed">
                   <p
                     className={`whitespace-pre-wrap ${!showFullDescription && track.description.length > 200 ? "line-clamp-3" : ""}`}
                   >
@@ -249,7 +251,7 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
             {/* Tags */}
             {tags.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <Tag className="w-5 h-5" />
                   Tags
                 </h3>
@@ -257,13 +259,13 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
                   {tags.slice(0, 8).map((tag, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-white/10 text-gray-800 text-sm rounded-full border border-white/20"
+                      className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded-full border border-gray-300"
                     >
                       {tag.replace(/"/g, "")}
                     </span>
                   ))}
                   {tags.length > 8 && (
-                    <span className="px-3 py-1 text-gray-600 text-sm">
+                    <span className="px-3 py-1 text-gray-500 text-sm">
                       +{tags.length - 8} more
                     </span>
                   )}
@@ -274,46 +276,48 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
 
           {/* Track Details */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white">Track Details</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Track Details
+            </h3>
 
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-gray-400 flex items-center gap-2">
+                <span className="text-gray-600 flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
                   Released
                 </span>
-                <span className="text-white">
+                <span className="text-gray-900">
                   {formatDate(track.created_at)}
                 </span>
               </div>
 
               {track.bpm && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400 flex items-center gap-2">
+                  <span className="text-gray-600 flex items-center gap-2">
                     <Music className="w-4 h-4" />
                     BPM
                   </span>
-                  <span className="text-white">{track.bpm}</span>
+                  <span className="text-gray-900">{track.bpm}</span>
                 </div>
               )}
 
               {track.key_signature && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Key</span>
-                  <span className="text-white">{track.key_signature}</span>
+                  <span className="text-gray-600">Key</span>
+                  <span className="text-gray-900">{track.key_signature}</span>
                 </div>
               )}
 
               {track.label_name && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Label</span>
-                  <span className="text-white">{track.label_name}</span>
+                  <span className="text-gray-600">Label</span>
+                  <span className="text-gray-900">{track.label_name}</span>
                 </div>
               )}
 
               <div className="flex items-center justify-between">
-                <span className="text-gray-400">License</span>
-                <span className="text-white text-xs">
+                <span className="text-gray-600">License</span>
+                <span className="text-gray-900 text-xs">
                   {track.license.split("-")[0]}
                 </span>
               </div>
