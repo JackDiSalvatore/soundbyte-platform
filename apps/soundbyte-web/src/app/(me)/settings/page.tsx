@@ -145,7 +145,7 @@ export default function Page() {
   }
 
   return (
-    <main className="flex flex-col m-2">
+    <main className="flex flex-col m-8">
       {/* Notification */}
       {notification && (
         <div
