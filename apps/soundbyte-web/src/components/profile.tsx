@@ -86,10 +86,24 @@ export default function Profile({ profile }: Props) {
             )}
 
             <div className="mt-4 grid grid-cols-4 gap-3 text-center">
-              <Stat label="Followers" value={profile.followers_count ?? 0} />
-              <Stat label="Tracks" value={profile.track_count ?? 0} />
-              <Stat label="Likes" value={profile.public_favorites_count ?? 0} />
-              <Stat label="Reposts" value={profile.reposts_count ?? 0} />
+              <Stat
+                label="Followers"
+                value={profile.followers_count.toLocaleString("en-US") ?? 0}
+              />
+              <Stat
+                label="Tracks"
+                value={profile.track_count.toLocaleString("en-US") ?? 0}
+              />
+              <Stat
+                label="Likes"
+                value={
+                  profile.public_favorites_count.toLocaleString("en-US") ?? 0
+                }
+              />
+              <Stat
+                label="Reposts"
+                value={profile.reposts_count.toLocaleString("en-US") ?? 0}
+              />
             </div>
           </div>
         </div>
@@ -98,7 +112,7 @@ export default function Profile({ profile }: Props) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-md bg-background/40 p-3">
       <div className="text-lg font-semibold">{value}</div>
