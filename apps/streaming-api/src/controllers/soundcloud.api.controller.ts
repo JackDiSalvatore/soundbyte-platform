@@ -137,10 +137,27 @@ export class SoundCloudApiController {
   @ApiResponse({ status: 200, description: 'Track' })
   async getTrack(
     @Param('userId') userId: string,
-    @Param('providerUserId') providerUserId: string,
     @Param('providerTrackId') providerTrackId: string,
   ): Promise<any> {
     const url = `https://api.soundcloud.com/tracks/soundcloud:tracks:${providerTrackId}`;
+    return this.fetchFromSoundCloud(userId, url);
+  }
+
+  @Get('/userId/:userId/tracks/:providerTrackId/comments')
+  @ApiResponse({ status: 200, description: 'User' })
+  async getTrackComments(
+    @Param('userId') userId: string,
+    @Param('providerTrackId') providerTrackId: string,
+    @Query('limit') limitRaw?: string,
+    @Query('next_href') nextHref?: string,
+  ): Promise<any> {
+    const limit = parseInt(limitRaw || '') || this.DEFAULT_LIMITS.tracks;
+    const url = this.buildUrl(
+      `https://api.soundcloud.com/tracks/soundcloud:tracks:${providerTrackId}/comments`,
+      nextHref,
+      limit,
+      { show_tracks: 'true' },
+    );
     return this.fetchFromSoundCloud(userId, url);
   }
 

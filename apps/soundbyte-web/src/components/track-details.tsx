@@ -20,7 +20,7 @@ export default function TrackDetails({ track }: { track: SoundCloudTrack }) {
   }
 
   return (
-    <article className="m-8">
+    <article className="max-w-7xl mx-auto">
       {/* Artwork */}
       <div className="aspect-square bg-gray-100 rounded-xl">
         <img
@@ -53,17 +53,14 @@ export default function TrackDetails({ track }: { track: SoundCloudTrack }) {
         {/* Stats */}
         <div className="mt-2 flex flex-col gap-2 text-xs text-gray-700">
           {/* Reposts + Likes row */}
-
           <div className="flex gap-1 items-center">
             <Repeat className="w-4 h-4 text-gray-400" />
             <span>{track.reposts_count}</span>
           </div>
-
           <div className="flex gap-1 items-center">
             <Heart className="w-4 h-4" fill="#99a1af" strokeWidth={0} />
             <span>{track.favoritings_count?.toLocaleString("en-US")}</span>
           </div>
-
           {/* Plays + Comments row */}
           <div className="flex gap-1 items-center">
             <Play
@@ -73,19 +70,16 @@ export default function TrackDetails({ track }: { track: SoundCloudTrack }) {
             />
             <span>{track.playback_count?.toLocaleString("en-US")}</span>
           </div>
-
           <div className="flex gap-1 items-center">
             <MessageSquareText className="w-4 h-4 text-gray-400" />
             <span>{track.comment_count?.toLocaleString("en-US")}</span>
           </div>
+          {/* Time */}
+          <div className="flex gap-1 items-center">
+            {formatTime(Math.ceil((track.duration ?? 0) / 1000))}
+          </div>{" "}
         </div>
       </div>
     </article>
   );
-}
-
-{
-  /* <div className="ml-auto text-xs text-muted-foreground">
-  {formatTime(Math.ceil((track.duration ?? 0) / 1000))}
-</div> */
 }

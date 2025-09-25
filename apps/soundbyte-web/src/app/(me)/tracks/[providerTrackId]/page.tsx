@@ -6,6 +6,10 @@ import { StreamingProviderClient } from "@/lib/streaming-provider-client";
 import { SoundCloudTrack } from "@/types/soundcloud-playlist";
 import { useEffect, useState } from "react";
 import TrackDetails from "@/components/track-details";
+import { usePaginatedFetch } from "@/hooks/use-paginated-fetch";
+import { SoundCloudPaginatedResponse } from "@/types/soundcloud-paginated-response";
+import { SoundCloudComment } from "@/types/soundcloud-comment";
+import Comments from "@/components/comments";
 
 export default function Page() {
   const params = useParams();
@@ -17,11 +21,10 @@ export default function Page() {
     null
   );
 
-  // User
+  if (!providerTrackId) return;
+
+  // Track
   useEffect(() => {
-    console.log("loading track to frontend");
-    console.log("uesrId: ", userId);
-    console.log("providerTrackId: ", providerTrackId);
     if (!userId || !providerTrackId) return;
 
     StreamingProviderClient.track({
@@ -34,6 +37,27 @@ export default function Page() {
     });
   }, []);
 
+  // Track Comments
+  const {
+    data: providerTrackComments,
+    nextHref: providerTrackCommentsNext,
+    isLoading: isLoadingProviderTrackComments,
+    fetchPage: fetchProviderTrackComments,
+  } = usePaginatedFetch<SoundCloudComment>(
+    (opts?: {
+      next?: boolean;
+      nextHref?: string;
+    }): Promise<SoundCloudPaginatedResponse<SoundCloudComment[]>> =>
+      StreamingProviderClient.comments({
+        provider: "soundcloud",
+        providerTrackId,
+        userId: userId || "",
+        limit: 25,
+        nextHref: opts?.next ? providerTrackCommentsNext : undefined,
+      }),
+    [providerTrackId, userId]
+  );
+
   if (!providerTrack) {
     return <>Loading...</>;
   }
@@ -41,6 +65,8 @@ export default function Page() {
   return (
     <section className="m-8">
       <TrackDetails track={providerTrack}></TrackDetails>
+
+      <Comments comments={providerTrackComments} />
     </section>
   );
 }

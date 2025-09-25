@@ -209,6 +209,44 @@ export class StreamingProviderClient {
   }
 
   /**
+   * Get streaming provider track comments
+   */
+  static async comments({
+    provider,
+    providerTrackId,
+    userId,
+    limit,
+    nextHref,
+  }: {
+    provider: string;
+    providerTrackId: string;
+    userId: string;
+    limit?: number;
+    nextHref?: string;
+  }): Promise<any> {
+    try {
+      const res = await axios.get(
+        `${this.baseUrl}/api/${provider}/userId/${userId}/tracks/${providerTrackId}/comments`,
+        {
+          params: {
+            limit,
+            next_href: nextHref,
+          },
+        }
+      );
+      console.log(res.data);
+
+      return res.data;
+    } catch (error) {
+      console.error(
+        `Failed to get users ${provider} ${providerTrackId} comments:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Get streaming provider profile info
    */
   static async profile({
