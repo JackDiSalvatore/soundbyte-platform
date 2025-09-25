@@ -7,10 +7,13 @@ import {
   SkipBack,
   SkipForward,
 } from "lucide-react";
+import Link from "next/link";
 
 interface SoundCloudPlayerProps {
   streamUrl: string;
   accessToken: string;
+  trackId: number;
+  trackUserId: number;
   trackTitle?: string;
   artistName?: string;
   artworkUrl?: string | null;
@@ -28,6 +31,8 @@ interface SoundCloudPlayerProps {
 export default function SoundCloudPlayer({
   streamUrl,
   accessToken,
+  trackId,
+  trackUserId,
   trackTitle = "Unknown Track",
   artistName = "Unknown Artist",
   artworkUrl = null,
@@ -253,10 +258,12 @@ export default function SoundCloudPlayer({
 
           <div className="ml-4 flex-1 min-w-0">
             <h3 className="text-base md:text-lg font-semibold text-gray-900 truncate">
-              {trackTitle.slice(0, 20)}
+              <Link href={`/tracks/${trackId}`}>{trackTitle.slice(0, 20)}</Link>
             </h3>
             <p className="text-sm text-gray-600 truncate">
-              {artistName.slice(0, 20)}
+              <Link href={`/users/${trackUserId}`}>
+                {artistName.slice(0, 20)}
+              </Link>
             </p>
           </div>
         </div>

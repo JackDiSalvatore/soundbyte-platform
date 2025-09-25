@@ -28,6 +28,8 @@ export default function PlayerOverlay({
           `https://api.soundcloud.com/tracks/${playingTrack.id}/stream`
         }
         accessToken={accessToken}
+        trackId={playingTrack.id}
+        trackUserId={playingTrack.user.id}
         trackTitle={playingTrack.title}
         artistName={playingTrack.user?.username || "Unknown Artist"}
         artworkUrl={playingTrack.artwork_url}
