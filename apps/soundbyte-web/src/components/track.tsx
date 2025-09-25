@@ -40,7 +40,6 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
       <div className="p-3 flex flex-col gap-2">
         <div className="flex flex-col">
           {/* Title */}
-
           <Link
             className="text-sm font-semibold text-gray-900 truncate"
             href={`/tracks/${track.id}`}
