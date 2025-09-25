@@ -32,7 +32,7 @@ export default function Comments({
 
       <div className="flex flex-col gap-4">
         {comments.map((c: SoundCloudComment) => (
-          <Comment comment={c} />
+          <Comment key={c.id} comment={c} />
         ))}
       </div>
 

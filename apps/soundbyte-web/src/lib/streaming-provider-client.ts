@@ -130,7 +130,6 @@ export class StreamingProviderClient {
       const res = await axios.get(
         `${this.baseUrl}/api/${provider}/userId/${userId}/users/${providerUserId}`
       );
-      console.log(res.data);
 
       return res.data;
     } catch (error) {
@@ -233,7 +232,6 @@ export class StreamingProviderClient {
           },
         }
       );
-      console.log(res.data);
 
       return res.data;
     } catch (error) {
@@ -259,7 +257,6 @@ export class StreamingProviderClient {
       const res = await axios.get(
         `${this.baseUrl}/api/${provider}/userId/${userId}/profile`
       );
-      console.log(res.data);
 
       return res.data;
     } catch (error) {

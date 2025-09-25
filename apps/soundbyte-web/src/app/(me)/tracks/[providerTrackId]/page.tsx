@@ -32,7 +32,6 @@ export default function Page() {
       providerTrackId,
       userId,
     }).then((res) => {
-      console.log(res);
       setProviderTrack(res);
     });
   }, []);
