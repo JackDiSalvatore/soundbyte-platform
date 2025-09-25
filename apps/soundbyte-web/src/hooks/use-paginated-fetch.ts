@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-type Fetcher<T> = (opts?: { next?: boolean; nextHref?: string }) => Promise<{
+type Fetcher<T> = (opts?: { next?: boolean }) => Promise<{
   collection: T[];
   next_href?: string;
 }>;
@@ -14,10 +14,7 @@ export function usePaginatedFetch<T>(fetcher: Fetcher<T>, deps: any[] = []) {
     async (opts?: { next?: boolean }) => {
       setIsLoading(true);
       try {
-        const res = await fetcher({
-          ...opts,
-          nextHref: opts?.next ? nextHref : undefined,
-        });
+        const res = await fetcher(opts);
         setData((prev) =>
           opts?.next ? [...prev, ...res.collection] : res.collection
         );
@@ -26,17 +23,17 @@ export function usePaginatedFetch<T>(fetcher: Fetcher<T>, deps: any[] = []) {
         setIsLoading(false);
       }
     },
-    [nextHref]
+    [fetcher]
   );
 
   const reset = useCallback(() => {
     setData([]);
     setNextHref(undefined);
-    fetchPage();
   }, []);
 
   useEffect(() => {
-    reset();
+    fetchPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   return { data, nextHref, isLoading, fetchPage, reset };
