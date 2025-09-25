@@ -1,6 +1,7 @@
 import React from "react";
 import { MessageCircle, Clock, User } from "lucide-react";
 import { SoundCloudComment } from "@/types/soundcloud-comment";
+import Link from "next/link";
 
 type CommentProps = {
   comment: SoundCloudComment;
@@ -74,11 +75,14 @@ export default function Comment({
               <h4 className="text-sm font-semibold text-gray-900 truncate">
                 {comment.user.username || comment.user.full_name}
               </h4>
-              {comment.user.username && (
-                <span className="text-xs text-gray-500">
-                  @{comment.user.username}
-                </span>
-              )}
+
+              <Link href={`/users/${comment.user.id}`}>
+                {comment.user.username && (
+                  <span className="text-xs text-gray-500">
+                    @{comment.user.username}
+                  </span>
+                )}
+              </Link>
             </div>
           </div>
         </div>

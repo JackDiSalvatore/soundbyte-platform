@@ -4,6 +4,7 @@ import React from "react";
 import { SoundCloudTrack } from "@/types/soundcloud-playlist";
 import { usePlayer } from "@/context/PlayerProvider";
 import { Play, Heart, Repeat, MessageSquareText } from "lucide-react";
+import Link from "next/link";
 
 function formatTime(totalSeconds: number): string {
   if (!totalSeconds || isNaN(totalSeconds)) return "0:00";
@@ -20,7 +21,7 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
   }
 
   return (
-    <article className="bg-card/60 backdrop-blur-md border border-border rounded-xl p-2 shadow hover:shadow-lg transition-shadow cursor-pointer overflow-hidden">
+    <article className="bg-card/60 backdrop-blur-md border border-border rounded-xl p-2 shadow hover:shadow-lg transition-shadow overflow-hidden">
       {/* Artwork */}
       <div className="w-full aspect-square bg-gray-100 rounded-xl">
         <img
@@ -30,7 +31,7 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
             "/file.svg"
           }
           alt={track.title}
-          className="w-full h-full rounded-xl object-cover"
+          className="w-full h-full rounded-xl object-cover cursor-pointer"
           onClick={handlePlay}
         />
       </div>
@@ -39,17 +40,21 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
       <div className="p-3 flex flex-col gap-2">
         <div className="flex flex-col">
           {/* Title */}
-          <div
+
+          <Link
             className="text-sm font-semibold text-gray-900 truncate"
-            onClick={handlePlay}
+            href={`/tracks/${track.id}`}
           >
             {track.title}
-          </div>
+          </Link>
 
           {/* Username */}
-          <div className="text-xs text-gray-600 truncate">
+          <Link
+            className="text-xs text-gray-600 truncate"
+            href={`/users/${track.user.id}`}
+          >
             {track.user?.username ?? track.user?.full_name}
-          </div>
+          </Link>
         </div>
 
         {/* Stats */}
