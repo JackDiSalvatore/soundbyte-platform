@@ -181,6 +181,34 @@ export class StreamingProviderClient {
   }
 
   /**
+   * Get streaming provider single track
+   */
+  static async track({
+    provider,
+    providerTrackId,
+    userId,
+  }: {
+    provider: string;
+    providerTrackId: string;
+    userId: string;
+  }): Promise<SoundCloudTrack> {
+    try {
+      const res = await axios.get(
+        `${this.baseUrl}/api/${provider}/userId/${userId}/tracks/${providerTrackId}`
+      );
+      console.log(res.data);
+
+      return res.data;
+    } catch (error) {
+      console.error(
+        `Failed to get ${provider} track ID ${providerTrackId}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Get streaming provider profile info
    */
   static async profile({

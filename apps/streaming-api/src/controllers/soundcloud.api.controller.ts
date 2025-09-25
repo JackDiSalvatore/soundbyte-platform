@@ -133,6 +133,17 @@ export class SoundCloudApiController {
     return this.fetchFromSoundCloud(userId, url);
   }
 
+  @Get('/userId/:userId/tracks/:providerTrackId')
+  @ApiResponse({ status: 200, description: 'Track' })
+  async getTrack(
+    @Param('userId') userId: string,
+    @Param('providerUserId') providerUserId: string,
+    @Param('providerTrackId') providerTrackId: string,
+  ): Promise<any> {
+    const url = `https://api.soundcloud.com/tracks/soundcloud:tracks:${providerTrackId}`;
+    return this.fetchFromSoundCloud(userId, url);
+  }
+
   @Get('/userId/:userId/profile')
   @ApiResponse({ status: 200, description: 'User profile' })
   async getProfile(@Param('userId') userId: string): Promise<any> {
