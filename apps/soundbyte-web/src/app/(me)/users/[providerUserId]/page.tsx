@@ -58,11 +58,6 @@ export default function Page() {
   if (!userId) return null;
   if (!providerUserId) return null;
 
-  console.log("tracks are: ", providerUserTracks);
-  console.log("Session:", session);
-  console.log("Provider User ID:", providerUserId);
-  console.log("Loading state:", isLoadingProviderUserTracks);
-
   return (
     <section className="m-8">
       <Profile profile={providerUser} />
