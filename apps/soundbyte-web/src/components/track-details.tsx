@@ -74,10 +74,25 @@ export default function TrackDetails({ track }: { track: SoundCloudTrack }) {
             <MessageSquareText className="w-4 h-4 text-gray-400" />
             <span>{track.comment_count?.toLocaleString("en-US")}</span>
           </div>
+
           {/* Time */}
           <div className="flex gap-1 items-center">
             {formatTime(Math.ceil((track.duration ?? 0) / 1000))}
-          </div>{" "}
+          </div>
+
+          {/* Description */}
+          <div className="flex gap-1 items-center">{track.description}</div>
+
+          {/* Comment Count */}
+          <div className="flex gap-1 items-center">
+            Comments: {track.comment_count}
+          </div>
+
+          {/* Genre */}
+          <div className="flex gap-1 items-center">Genre: {track.genre}</div>
+
+          {/* Tags */}
+          <div className="flex gap-1 items-center">Tags: {track.tag_list}</div>
         </div>
       </div>
     </article>
