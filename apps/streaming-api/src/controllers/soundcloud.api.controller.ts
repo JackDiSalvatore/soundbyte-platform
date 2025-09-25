@@ -135,6 +135,7 @@ export class SoundCloudApiController {
   }
 
   @Get('/userId/:userId/users/:providerUserId/tracks')
+  @ApiQuery({ name: 'next_href', required: false })
   @ApiResponse({ status: 200, description: 'User' })
   async getUserTracks(
     @Param('userId') userId: string,
@@ -163,7 +164,8 @@ export class SoundCloudApiController {
   }
 
   @Get('/userId/:userId/tracks/:providerTrackId/comments')
-  @ApiResponse({ status: 200, description: 'User' })
+  @ApiQuery({ name: 'next_href', required: false })
+  @ApiResponse({ status: 200, description: 'Comments' })
   async getTrackComments(
     @Param('userId') userId: string,
     @Param('providerTrackId') providerTrackId: string,
@@ -175,7 +177,6 @@ export class SoundCloudApiController {
       `https://api.soundcloud.com/tracks/soundcloud:tracks:${providerTrackId}/comments`,
       nextHref,
       limit,
-      { show_tracks: 'true' },
     );
     return this.fetchFromSoundCloud(userId, url);
   }

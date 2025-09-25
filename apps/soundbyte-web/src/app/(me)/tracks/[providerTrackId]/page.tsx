@@ -65,7 +65,12 @@ export default function Page() {
     <section className="m-8">
       <TrackDetails track={providerTrack}></TrackDetails>
 
-      <Comments comments={providerTrackComments} />
+      <Comments
+        comments={providerTrackComments}
+        hasMore={!!providerTrackCommentsNext}
+        isLoading={isLoadingProviderTrackComments}
+        onLoadMore={() => fetchProviderTrackComments({ next: true })}
+      />
     </section>
   );
 }
