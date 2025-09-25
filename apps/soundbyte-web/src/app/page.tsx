@@ -24,7 +24,7 @@ export default function Page() {
         transition={{ duration: 0.8 }}
         className="flex items-center space-x-3 mb-8"
       >
-        <Music className="w-12 h-12 text-purple-500" />
+        <Music className="w-12 h-12 text-orange-500" />
         <h1 className="text-4xl font-extrabold tracking-wide">SoundByte</h1>
       </motion.div>
 
@@ -47,7 +47,7 @@ export default function Page() {
       >
         <SignIn
           socialProvider="google"
-          className="px-8 py-4 text-lg rounded-2xl shadow-lg bg-purple-600 hover:bg-purple-700 transition"
+          className="px-8 py-4 text-lg rounded-2xl shadow-lg bg-orange-500 hover:bg-orange-400 transition"
         />
       </motion.div>
     </div>
