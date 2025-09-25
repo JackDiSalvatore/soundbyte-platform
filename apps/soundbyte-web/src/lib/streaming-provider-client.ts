@@ -168,7 +168,6 @@ export class StreamingProviderClient {
           },
         }
       );
-      console.log("returning:", res.data);
 
       return res.data;
     } catch (error) {

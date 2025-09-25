@@ -9,7 +9,7 @@ type HeaderProps = {
 };
 
 export default function Header({ className, children }: HeaderProps) {
-  const { session, accessToken, isPending } = useAuth();
+  const { session, isPending } = useAuth();
 
   return (
     <main className={`${className}`}>

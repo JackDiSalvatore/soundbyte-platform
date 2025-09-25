@@ -34,12 +34,16 @@ export function UserDropdownMenu({ user }: { user: User | null }) {
         <DropdownMenuLabel>{fullName[0]}'s Account</DropdownMenuLabel>
 
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <Link href={"/library"}>Library</Link>
+          <DropdownMenuItem asChild>
+            <Link className="cursor-pointer" href={"/library"}>
+              Library
+            </Link>
           </DropdownMenuItem>
 
-          <DropdownMenuItem>
-            <Link href={"/settings"}>Settings</Link>
+          <DropdownMenuItem asChild>
+            <Link className="cursor-pointer" href={"/settings"}>
+              Settings
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
 

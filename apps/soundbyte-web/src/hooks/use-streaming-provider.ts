@@ -37,7 +37,6 @@ export default function useStreamingProvider({
         `${env.NEXT_PUBLIC_STREAMING_API}/auth/${provider}/userId/${userId}/accessToken`
       )
       .then((res) => {
-        console.log(`res:`, res);
         const data = res.data as unknown as { accessToken: string };
 
         const access = {
