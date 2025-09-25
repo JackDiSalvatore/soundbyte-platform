@@ -1,5 +1,7 @@
 // Enhanced OAuth client for your streaming API
 import { env } from "@/lib/environment";
+import { SoundCloudTrack } from "@/types/soundcloud-playlist";
+import { SoundCloudProfile } from "@/types/soundcloud-profile";
 import axios from "axios";
 
 export class StreamingProviderClient {
@@ -110,6 +112,72 @@ export class StreamingProviderClient {
     }
 
     return { success: false };
+  }
+
+  /**
+   * Get streaming provider user info
+   */
+  static async user({
+    provider,
+    providerUserId,
+    userId,
+  }: {
+    provider: string;
+    providerUserId: string;
+    userId: string;
+  }): Promise<SoundCloudProfile> {
+    try {
+      const res = await axios.get(
+        `${this.baseUrl}/api/${provider}/userId/${userId}/users/${providerUserId}`
+      );
+      console.log(res.data);
+
+      return res.data;
+    } catch (error) {
+      console.error(
+        `Failed to get ${provider} user ID ${providerUserId}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get streaming provider user tracks
+   */
+  static async userTracks({
+    provider,
+    providerUserId,
+    userId,
+    limit,
+    nextHref,
+  }: {
+    provider: string;
+    providerUserId: string;
+    userId: string;
+    limit?: number;
+    nextHref?: string;
+  }): Promise<any> {
+    try {
+      const res = await axios.get(
+        `${this.baseUrl}/api/${provider}/userId/${userId}/users/${providerUserId}/tracks`,
+        {
+          params: {
+            limit,
+            next_href: nextHref,
+          },
+        }
+      );
+      console.log("returning:", res.data);
+
+      return res.data;
+    } catch (error) {
+      console.error(
+        `Failed to get ${provider} tracks user ID ${providerUserId}:`,
+        error
+      );
+      throw error;
+    }
   }
 
   /**

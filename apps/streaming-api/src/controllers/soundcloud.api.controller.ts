@@ -105,6 +105,34 @@ export class SoundCloudApiController {
 
   /** ----------- Endpoints ----------- **/
 
+  @Get('/userId/:userId/users/:providerUserId')
+  @ApiResponse({ status: 200, description: 'User' })
+  async getUser(
+    @Param('userId') userId: string,
+    @Param('providerUserId') providerUserId: string,
+  ): Promise<any> {
+    const url = `https://api.soundcloud.com/users/soundcloud:users:${providerUserId}`;
+    return this.fetchFromSoundCloud(userId, url);
+  }
+
+  @Get('/userId/:userId/users/:providerUserId/tracks')
+  @ApiResponse({ status: 200, description: 'User' })
+  async getUserTracks(
+    @Param('userId') userId: string,
+    @Param('providerUserId') providerUserId: string,
+    @Query('limit') limitRaw?: string,
+    @Query('next_href') nextHref?: string,
+  ): Promise<any> {
+    const limit = parseInt(limitRaw || '') || this.DEFAULT_LIMITS.tracks;
+    const url = this.buildUrl(
+      `https://api.soundcloud.com/users/soundcloud:users:${providerUserId}/tracks`,
+      nextHref,
+      limit,
+      { show_tracks: 'true' },
+    );
+    return this.fetchFromSoundCloud(userId, url);
+  }
+
   @Get('/userId/:userId/profile')
   @ApiResponse({ status: 200, description: 'User profile' })
   async getProfile(@Param('userId') userId: string): Promise<any> {

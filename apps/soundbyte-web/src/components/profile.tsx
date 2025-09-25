@@ -3,6 +3,11 @@
 import React from "react";
 import Link from "next/link";
 import { SoundCloudProfile } from "@/types/soundcloud-profile";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@radix-ui/react-tooltip";
 
 type Props = {
   profile: SoundCloudProfile | undefined | null;
@@ -11,7 +16,7 @@ type Props = {
 export default function Profile({ profile }: Props) {
   if (!profile)
     return (
-      <div className="max-w-3xl mx-auto p-6 text-sm text-muted-foreground">
+      <div className="max-w-7xl mx-auto p-6 text-sm text-muted-foreground">
         No profile found.
       </div>
     );
@@ -37,9 +42,16 @@ export default function Profile({ profile }: Props) {
               <h2 className="text-2xl font-semibold leading-tight truncate">
                 {profile.full_name ?? profile.username}
               </h2>
-              <p className="text-sm text-muted-foreground truncate">
-                @{profile.username}
-              </p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <p className="text-sm text-muted-foreground truncate">
+                    @{profile.username}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent className="bg-gray-100 text-white border-gray-400 p-2 rounded-md shadow-lg mb-2">
+                  <p className="text-sm text-muted-foreground truncate">{`SoundCloud ID: ${profile.id}`}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
 
             <div className="flex items-center gap-3">

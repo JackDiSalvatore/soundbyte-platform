@@ -18,7 +18,7 @@ export default function Tracks({
 }: Props) {
   if (!tracks || tracks.length === 0) {
     return (
-      <section className="max-w-3xl mx-auto mt-6">
+      <section className="max-w-7xl mx-auto mt-6">
         <div className="bg-card/60 backdrop-blur-md border border-border rounded-xl p-6 text-center">
           <p className="text-sm text-muted-foreground">No Tracks found.</p>
         </div>
