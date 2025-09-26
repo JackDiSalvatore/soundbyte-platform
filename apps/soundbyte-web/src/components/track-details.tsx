@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { SoundCloudTrack } from "@/types/soundcloud-playlist";
 import { usePlayer } from "@/context/PlayerProvider";
+import Link from "next/link";
 
 function formatTime(totalSeconds: number): string {
   if (!totalSeconds || isNaN(totalSeconds)) return "0:00";
@@ -132,11 +133,13 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
                     alt={track.user.username}
                     className="w-8 h-8 rounded-full"
                   />
-                  <span className="text-xl text-gray-600">
-                    {track.user.username ||
-                      track.user.full_name ||
-                      track.user.username}
-                  </span>
+                  <Link href={`/users/${track.user.id}`}>
+                    <span className="text-xl text-gray-600">
+                      {track.user.username ||
+                        track.user.full_name ||
+                        track.user.username}
+                    </span>
+                  </Link>
                 </div>
               </div>
 
