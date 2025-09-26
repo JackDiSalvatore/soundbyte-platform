@@ -6,6 +6,7 @@ import {
   VolumeX,
   SkipBack,
   SkipForward,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -341,8 +342,15 @@ export default function SoundCloudPlayer({
 
         {/* Error Display */}
         {error && (
-          <div className="w-full bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="w-full bg-red-50 border border-red-200 rounded-lg p-3 flex items-start justify-between">
+            <p className="text-sm text-red-700 flex-1">{error}</p>
+            <button
+              onClick={() => setError(null)} // or setError('') depending on your state type
+              className="ml-3 text-red-400 hover:text-red-600 transition-colors"
+              aria-label="Clear error"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         )}
       </div>
