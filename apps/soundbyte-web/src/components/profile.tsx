@@ -78,7 +78,7 @@ export default function Profile({ profile }: Props) {
             )}
 
             {profile.description ? (
-              <p className="line-clamp-3 break-words text-sm">
+              <p className="whitespace-pre-wrap line-clamp-3 break-words text-sm">
                 {profile.description}
               </p>
             ) : (
