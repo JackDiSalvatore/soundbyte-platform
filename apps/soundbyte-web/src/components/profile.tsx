@@ -8,6 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@radix-ui/react-tooltip";
+import { PlanBadge } from "./plan-badge";
 
 type Props = {
   profile: SoundCloudProfile | undefined | null;
@@ -25,7 +26,7 @@ export default function Profile({ profile }: Props) {
     <section className="max-w-7xl mx-auto w-full">
       <div className="bg-card/60 backdrop-blur-md border border-border rounded-xl p-6 flex items-start gap-6 shadow-lg">
         {/* Avatar */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 relative">
           {/* Using native <img> for avatars to avoid requiring next.config image domains in all environments */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -33,15 +34,24 @@ export default function Profile({ profile }: Props) {
             alt={profile.username ?? "avatar"}
             className="w-24 h-24 rounded-full object-cover ring-2 ring-primary/30"
           />
+
+          {/* Plan badge positioned over avatar */}
+          <div className="absolute -bottom-2 -right-2">
+            <PlanBadge plan={profile.plan} />
+          </div>
         </div>
 
         {/* Main info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <h2 className="text-2xl font-semibold leading-tight truncate">
-                {profile.full_name ?? profile.username}
-              </h2>
+              <div className="flex items-center gap-3 mb-1">
+                <h2 className="text-2xl font-semibold leading-tight truncate">
+                  {profile.full_name ?? profile.username}
+                </h2>
+                {/* Alternative placement: next to name */}
+                {/* <PlanBadge plan={profile.plan} /> */}
+              </div>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <p className="text-sm text-muted-foreground truncate">
