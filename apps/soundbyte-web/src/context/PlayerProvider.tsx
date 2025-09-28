@@ -11,14 +11,17 @@ import { SoundCloudTrack } from "@/types/soundcloud-playlist";
 
 type PlayerContextType = {
   playingTrack?: SoundCloudTrack;
+  isPlaying: boolean;
   playTrack: (track: SoundCloudTrack) => void;
   stop: () => void;
+  setPlaybackState: (playing: boolean) => void;
 };
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [playingTrack, setPlayingTrack] = useState<SoundCloudTrack>();
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -35,14 +38,21 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
   const stop = useCallback(() => {
     setPlayingTrack(undefined);
+    setIsPlaying(false);
+  }, []);
+
+  const setPlaybackState = useCallback((playing: boolean) => {
+    setIsPlaying(playing);
   }, []);
 
   return (
     <PlayerContext.Provider
       value={{
         playingTrack,
+        isPlaying,
         playTrack,
         stop,
+        setPlaybackState,
       }}
     >
       {children}

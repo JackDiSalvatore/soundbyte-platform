@@ -49,14 +49,21 @@ function formatCount(count: number | undefined): string {
 }
 
 export default function SongComponent({ track }: { track: SoundCloudTrack }) {
-  const { playTrack, playingTrack } = usePlayer();
+  const { playTrack, playingTrack, isPlaying, setPlaybackState } = usePlayer();
   const [isLiked, setIsLiked] = useState(track.user_favorite || false);
   const [showFullDescription, setShowFullDescription] = useState(false);
 
   const isCurrentlyPlaying = playingTrack?.id === track.id;
+  const showPlayingState = isCurrentlyPlaying && isPlaying;
 
   function handlePlay() {
-    playTrack(track);
+    if (isCurrentlyPlaying) {
+      // If this track is already loaded, just toggle play/pause
+      setPlaybackState(!isPlaying);
+    } else {
+      // If this is a different track, load it
+      playTrack(track);
+    }
   }
 
   function handleLike() {
@@ -104,7 +111,7 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
                   onClick={handlePlay}
                   className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
                 >
-                  {isCurrentlyPlaying ? (
+                  {showPlayingState ? (
                     <Pause className="w-16 h-16 text-white" />
                   ) : (
                     <Play className="w-16 h-16 text-white ml-2" />
@@ -181,12 +188,12 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
                   onClick={handlePlay}
                   className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 px-6 py-3 rounded-full text-white font-semibold transition-colors duration-200"
                 >
-                  {isCurrentlyPlaying ? (
+                  {showPlayingState ? (
                     <Pause className="w-5 h-5" />
                   ) : (
                     <Play className="w-5 h-5" />
                   )}
-                  {isCurrentlyPlaying ? "Pause" : "Play"}
+                  {showPlayingState ? "Pause" : "Play"}
                 </button>
 
                 <button

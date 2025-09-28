@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { usePlayer } from "@/context/PlayerProvider";
 
 interface SoundCloudPlayerProps {
   streamUrl: string;
@@ -47,7 +48,8 @@ export default function SoundCloudPlayer({
   onLoadStart = () => {},
   onLoadEnd = () => {},
 }: SoundCloudPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { setPlaybackState, isPlaying: contextIsPlaying } = usePlayer();
+  const [localIsPlaying, setLocalIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
@@ -65,6 +67,47 @@ export default function SoundCloudPlayer({
   const memoizedOnError = useCallback(onError, []);
   const memoizedOnLoadStart = useCallback(onLoadStart, []);
   const memoizedOnLoadEnd = useCallback(onLoadEnd, []);
+
+  // Sync local playing state with context only when this component changes it
+  const updatePlaybackState = useCallback(
+    (playing: boolean) => {
+      setLocalIsPlaying(playing);
+      setPlaybackState(playing);
+    },
+    [setPlaybackState]
+  );
+
+  // Use context state for display, but maintain local state for audio control
+  const displayIsPlaying = contextIsPlaying;
+
+  // Handle external pause/play commands from context (e.g., from TrackDetails)
+  useEffect(() => {
+    if (!audioRef.current || !actualStreamUrl) return;
+
+    // If context says we should be playing but we're not, start playing
+    if (contextIsPlaying && !localIsPlaying) {
+      audioRef.current.play().catch((err: Error) => {
+        const errorMessage = "Failed to play audio: " + err.message;
+        setError(errorMessage);
+        onError(errorMessage);
+      });
+      setLocalIsPlaying(true);
+      onPlay();
+    }
+    // If context says we should be paused but we're playing, pause
+    else if (!contextIsPlaying && localIsPlaying) {
+      audioRef.current.pause();
+      setLocalIsPlaying(false);
+      onPause();
+    }
+  }, [
+    contextIsPlaying,
+    localIsPlaying,
+    actualStreamUrl,
+    onPlay,
+    onPause,
+    onError,
+  ]);
 
   // Fetch actual stream URL from SoundCloud API
   useEffect(() => {
@@ -124,7 +167,7 @@ export default function SoundCloudPlayer({
     audioRef.current
       .play()
       .then(() => {
-        setIsPlaying(true);
+        updatePlaybackState(true);
         memoizedOnPlay();
       })
       .catch((err: Error) => {
@@ -137,9 +180,9 @@ export default function SoundCloudPlayer({
   const togglePlay = (): void => {
     if (!audioRef.current || !actualStreamUrl) return;
 
-    if (isPlaying) {
+    if (localIsPlaying) {
       audioRef.current.pause();
-      setIsPlaying(false);
+      updatePlaybackState(false);
       onPause();
     } else {
       audioRef.current.play().catch((err: Error) => {
@@ -147,7 +190,7 @@ export default function SoundCloudPlayer({
         setError(errorMessage);
         onError(errorMessage);
       });
-      setIsPlaying(true);
+      updatePlaybackState(true);
       onPlay();
     }
   };
@@ -230,7 +273,7 @@ export default function SoundCloudPlayer({
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onEnded={() => {
-              setIsPlaying(false);
+              updatePlaybackState(false);
               onEnded();
             }}
             onError={() => {
@@ -304,7 +347,7 @@ export default function SoundCloudPlayer({
           >
             {loading ? (
               <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : isPlaying ? (
+            ) : displayIsPlaying ? (
               <Pause size={24} />
             ) : (
               <Play size={24} className="ml-0.5" />

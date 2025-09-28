@@ -6,18 +6,31 @@ export default function PlayerOverlay({
 }: {
   accessToken: string | null;
 }) {
-  const { playingTrack, stop } = usePlayer();
+  const { playingTrack, stop, setPlaybackState } = usePlayer();
 
   if (!playingTrack || !accessToken) return null;
 
   // Player event handlers
   const handlePlayerError = (error: string) => {
     console.error("SoundCloud Player Error:", error);
+    setPlaybackState(false); // Stop playback on error
   };
 
   const handleTrackEnd = () => {
     console.log("Track ended");
+    setPlaybackState(false);
+    stop();
     // Optionally auto-play next track or reset player
+  };
+
+  const handlePlay = () => {
+    console.log("Track started playing");
+    setPlaybackState(true);
+  };
+
+  const handlePause = () => {
+    console.log("Track paused");
+    setPlaybackState(false);
   };
 
   return (
@@ -35,7 +48,10 @@ export default function PlayerOverlay({
         artworkUrl={playingTrack.artwork_url ?? playingTrack.user?.avatar_url}
         soundcloudUrl={playingTrack.permalink_url}
         autoPlay={true} // always play on new mount
-        onEnded={stop}
+        onPlay={handlePlay}
+        onPause={handlePause}
+        onEnded={handleTrackEnd}
+        onError={handlePlayerError}
       />
     </div>
   );
