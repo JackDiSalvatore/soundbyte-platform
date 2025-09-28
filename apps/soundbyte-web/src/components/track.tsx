@@ -12,7 +12,7 @@ import {
   Repeat,
 } from "lucide-react";
 import Link from "next/link";
-import SongStatsBar from "./song-stats-bar";
+// import SongStatsBar from "./song-stats-bar";
 
 export default function Track({ track }: { track: SoundCloudTrack }) {
   const { playTrack, playingTrack, isPlaying, setPlaybackState } = usePlayer();
@@ -136,13 +136,13 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
         </Link>
 
         {/* Clean Stats Bar */}
-        <SongStatsBar
+        {/* <SongStatsBar
           className="pt-2 border-t border-gray-100 space-y-2"
           playback_count={track.playback_count}
           favoritings_count={track.favoritings_count}
           reposts_count={track.reposts_count}
           comment_count={track.comment_count}
-        />
+        /> */}
       </div>
     </article>
   );
