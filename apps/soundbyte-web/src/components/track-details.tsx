@@ -196,7 +196,7 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
                   {showPlayingState ? "Pause" : "Play"}
                 </button>
 
-                <button
+                {/* <button
                   onClick={handleLike}
                   className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-colors duration-200 ${
                     isLiked
@@ -209,12 +209,12 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
                     fill={isLiked ? "currentColor" : "none"}
                   />
                   Like
-                </button>
+                </button> */}
 
-                <button className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 px-6 py-3 rounded-full text-gray-700 font-semibold transition-colors duration-200 border border-gray-300">
+                {/* <button className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 px-6 py-3 rounded-full text-gray-700 font-semibold transition-colors duration-200 border border-gray-300">
                   <Share2 className="w-5 h-5" />
                   Share
-                </button>
+                </button> */}
 
                 {track.downloadable && (
                   <button className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 px-6 py-3 rounded-full text-gray-700 font-semibold transition-colors duration-200 border border-gray-300">
