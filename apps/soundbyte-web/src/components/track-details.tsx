@@ -95,7 +95,7 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Artwork */}
             <div className="flex-shrink-0">
-              <div className="relative group">
+              <div className="relative group w-64 max-w-full">
                 <img
                   src={
                     track.artwork_url?.replace("-large", "-t300x300") ??
@@ -103,7 +103,7 @@ export default function SongComponent({ track }: { track: SoundCloudTrack }) {
                     "/placeholder-artwork.jpg"
                   }
                   alt={track.title}
-                  className="w-64 h-64 rounded-xl object-cover shadow-2xl transition-transform duration-300 group-hover:scale-105"
+                  className="w-full aspect-square rounded-xl object-cover shadow-2xl transition-transform duration-300 group-hover:scale-105"
                 />
 
                 {/* Play button overlay */}
