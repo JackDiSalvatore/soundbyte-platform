@@ -17,9 +17,11 @@ type Props = {
 export default function Profile({ profile }: Props) {
   if (!profile)
     return (
-      <div className="max-w-7xl mx-auto p-6 text-sm text-muted-foreground">
-        No profile found.
-      </div>
+      <section className="max-w-7xl mx-auto mt-6">
+        <div className="bg-card/60 backdrop-blur-md border border-border rounded-xl p-6 text-center">
+          <p className="text-sm text-muted-foreground">No profile found.</p>
+        </div>
+      </section>
     );
 
   return (
