@@ -6,6 +6,10 @@
 2. Generate Migrations `npm run db:generate`
 3. Apply Migrations `npm run db:migrate`
 
+Seeding:
+
+`npm run db:seed:genres`
+
 ---
 
 ## Description

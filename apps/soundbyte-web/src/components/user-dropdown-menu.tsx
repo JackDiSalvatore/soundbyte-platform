@@ -41,6 +41,12 @@ export function UserDropdownMenu({ user }: { user: User | null }) {
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild>
+            <Link className="cursor-pointer" href={"/profile"}>
+              Profile
+            </Link>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem asChild>
             <Link className="cursor-pointer" href={"/settings"}>
               Settings
             </Link>

@@ -397,4 +397,97 @@ export class StreamingProviderClient {
       throw error;
     }
   }
+
+  /**
+   * App functions
+   */
+
+  /**
+   * Get genres
+   */
+  static async getGenres(): Promise<any> {
+    try {
+      const res = await axios.get(`${this.baseUrl}/api/genres`);
+
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to get genres:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get users SoundByte profile by user id
+   */
+  static async getSoundByteProfileByUserId({
+    userId,
+  }: {
+    userId: string;
+  }): Promise<any> {
+    try {
+      const res = await axios.get(
+        `${this.baseUrl}/api/profiles/userId/${userId}/profile`
+      );
+
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to get ${userId}'s profile:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get users SoundByte profile by provider id
+   */
+  static async getSoundByteProfileByProviderId({
+    providerId,
+  }: {
+    providerId: string;
+  }): Promise<any> {
+    try {
+      const res = await axios.get(
+        `${this.baseUrl}/api/profiles/providerId/${providerId}/profile`
+      );
+
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to get ${providerId}'s profile:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create users SoundByte profile
+   */
+  static async createSoundByteProfile(props: {
+    profile: {
+      userId: string;
+      providerId: string;
+      email: string;
+      verified?: boolean;
+      public?: boolean;
+    };
+    subscription?: {
+      plan: string;
+      expiresAt?: Date;
+    };
+    genres?: number[];
+    socials?: {
+      platform: string; // "instagram" | "twitter" | "facebook" | "tiktok" | "spotify" | "bandcamp" | "youtube"
+      url: string;
+    }[];
+  }): Promise<any> {
+    try {
+      const res = await axios.request({
+        method: "post",
+        url: `${this.baseUrl}/api/profiles`,
+        data: {},
+      });
+
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to create users profile:`, error);
+      throw error;
+    }
+  }
 }
