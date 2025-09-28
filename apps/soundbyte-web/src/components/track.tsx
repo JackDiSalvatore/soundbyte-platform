@@ -114,7 +114,7 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
       </div>
 
       {/* Content Below Image */}
-      <div className="p-5 space-y-3">
+      <div className="p-3 space-y-2">
         {/* Title */}
         <Link
           href={`/tracks/${track.id}`}
