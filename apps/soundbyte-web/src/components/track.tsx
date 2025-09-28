@@ -101,14 +101,14 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
 
         {/* Playing Status Indicator */}
         {showPlayingState && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-xs px-4 py-2 rounded-full font-semibold shadow-lg animate-pulse">
-            ♪ Now Playing
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-xs px-4 py-2 rounded-full font-semibold shadow-lg animate-pulse duration-900">
+            Playing
           </div>
         )}
 
         {isCurrentlyPlaying && !isPlaying && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-gray-500 text-white text-xs px-4 py-2 rounded-full font-semibold shadow-lg">
-            ⏸ Paused
+            Paused
           </div>
         )}
       </div>
