@@ -8,6 +8,7 @@ import SearchInput from "@/components/search-input";
 import { PlayerProvider } from "@/context/PlayerProvider";
 import PlayerOverlay from "@/components/player-overlay";
 import { SearchProvider } from "@/context/SearchProvider";
+import { redirect } from "next/navigation";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { session, streamingCredentials, isPending } = useAuth();
@@ -15,6 +16,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [soundCloudAccessToken, setSoundCloudAccessToken] = useState<
     string | null
   >(null);
+
+  if (!session) {
+    redirect("/");
+  }
 
   useEffect(() => {
     if (!streamingCredentials) return;
