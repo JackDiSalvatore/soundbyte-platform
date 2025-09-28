@@ -32,7 +32,7 @@ export default function PlayerOverlay({
         trackUserId={playingTrack.user.id}
         trackTitle={playingTrack.title}
         artistName={playingTrack.user?.username || "Unknown Artist"}
-        artworkUrl={playingTrack.artwork_url}
+        artworkUrl={playingTrack.artwork_url ?? playingTrack.user?.avatar_url}
         soundcloudUrl={playingTrack.permalink_url}
         autoPlay={true} // always play on new mount
         onEnded={stop}
