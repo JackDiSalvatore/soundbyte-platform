@@ -3,7 +3,14 @@
 import React from "react";
 import { SoundCloudTrack } from "@/types/soundcloud-playlist";
 import { usePlayer } from "@/context/PlayerProvider";
-import { Play, Pause, Heart, Repeat, MessageSquareText } from "lucide-react";
+import {
+  Play,
+  Pause,
+  Heart,
+  MessageSquareText,
+  Headphones,
+  Repeat,
+} from "lucide-react";
 import Link from "next/link";
 
 export default function Track({ track }: { track: SoundCloudTrack }) {
@@ -14,111 +21,152 @@ export default function Track({ track }: { track: SoundCloudTrack }) {
 
   function handlePlay() {
     if (isCurrentlyPlaying) {
-      // If this track is already loaded, just toggle play/pause
       setPlaybackState(!isPlaying);
     } else {
-      // If this is a different track, load it
       playTrack(track);
     }
   }
 
-  return (
-    <article className="bg-card/60 backdrop-blur-md border border-border rounded-xl p-2 shadow hover:shadow-lg transition-shadow overflow-hidden group">
-      {/* Artwork with Play Overlay */}
-      <div className="relative w-full aspect-square bg-gray-100 rounded-xl overflow-hidden">
-        <img
-          src={
-            track.artwork_url?.replace("-large", "-t200x200") ??
-            track.user.avatar_url?.replace("-large", "-t200x200") ??
-            "/file.svg"
-          }
-          alt={track.title}
-          className="w-full h-full rounded-xl object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
-          onClick={handlePlay}
-        />
+  const formatCount = (count: number | undefined): string => {
+    if (!count) return "0";
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+    return count.toLocaleString();
+  };
 
-        {/* Play/Pause Overlay */}
-        <div
-          className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer"
+  return (
+    <article className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 hover:border-gray-300/70 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+      {/* Artwork Container */}
+      <div className="relative overflow-hidden">
+        <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100">
+          <img
+            src={
+              track.artwork_url?.replace("-large", "-t300x300") ??
+              track.user.avatar_url?.replace("-large", "-t300x300") ??
+              "/file.svg"
+            }
+            alt={track.title}
+            className="w-full h-full object-cover cursor-pointer transition-all duration-700 group-hover:scale-110"
+            onClick={handlePlay}
+          />
+        </div>
+
+        {/* Overlay Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Central Play Button */}
+        <button
           onClick={handlePlay}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300 hover:bg-white hover:scale-105"
         >
-          <div className="bg-white/90 rounded-full p-3 transform transition-transform duration-200 hover:scale-110">
-            {showPlayingState ? (
-              <Pause className="w-6 h-6 text-gray-900" />
-            ) : (
-              <Play className="w-6 h-6 text-gray-900 ml-0.5" />
-            )}
+          {showPlayingState ? (
+            <Pause className="w-7 h-7 text-gray-900" />
+          ) : (
+            <Play className="w-7 h-7 text-gray-900 ml-1" />
+          )}
+        </button>
+
+        {/* Top Stats Overlay */}
+        <div className="absolute top-4 left-4 right-4 flex justify-between opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+          <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1.5">
+            <Headphones className="w-3 h-3 text-white" />
+            <span className="text-xs text-white font-medium">
+              {formatCount(track.playback_count)}
+            </span>
+          </div>
+          <div className="flex items-center gap-1 bg-red-500/90 backdrop-blur-sm rounded-full px-3 py-1.5">
+            <Heart className="w-3 h-3 text-white" fill="currentColor" />
+            <span className="text-xs text-white font-medium">
+              {formatCount(track.favoritings_count)}
+            </span>
           </div>
         </div>
 
-        {/* Playing Indicator */}
+        {/* Bottom Stats Overlay */}
+        <div className="absolute bottom-4 left-4 right-4 flex justify-between opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+          <div className="flex items-center gap-1 bg-green-500/90 backdrop-blur-sm rounded-full px-3 py-1.5">
+            <Repeat className="w-3 h-3 text-white" />
+            <span className="text-xs text-white font-medium">
+              {formatCount(track.reposts_count)}
+            </span>
+          </div>
+          <div className="flex items-center gap-1 bg-blue-500/90 backdrop-blur-sm rounded-full px-3 py-1.5">
+            <MessageSquareText className="w-3 h-3 text-white" />
+            <span className="text-xs text-white font-medium">
+              {formatCount(track.comment_count)}
+            </span>
+          </div>
+        </div>
+
+        {/* Playing Status Indicator */}
         {showPlayingState && (
-          <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-            Playing
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-xs px-4 py-2 rounded-full font-semibold shadow-lg animate-pulse">
+            ♪ Now Playing
           </div>
         )}
 
-        {/* Currently Selected Indicator (but paused) */}
         {isCurrentlyPlaying && !isPlaying && (
-          <div className="absolute top-2 right-2 bg-gray-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-            Paused
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-gray-500 text-white text-xs px-4 py-2 rounded-full font-semibold shadow-lg">
+            ⏸ Paused
           </div>
         )}
       </div>
 
-      {/* Body */}
-      <div className="p-3 flex flex-col gap-2">
-        <div className="flex flex-col">
-          {/* Title */}
-          <Link
-            className={`text-sm font-semibold truncate transition-colors ${
-              showPlayingState
-                ? "text-orange-600"
-                : "text-gray-900 hover:text-orange-500"
-            }`}
-            href={`/tracks/${track.id}`}
-          >
-            {track.title}
-          </Link>
+      {/* Content Below Image */}
+      <div className="p-5 space-y-3">
+        {/* Title */}
+        <Link
+          href={`/tracks/${track.id}`}
+          className={`block text-base font-semibold leading-tight transition-colors duration-200 ${
+            showPlayingState
+              ? "text-orange-600"
+              : "text-gray-900 hover:text-orange-500"
+          }`}
+        >
+          <span className="line-clamp-2">{track.title}</span>
+        </Link>
 
-          {/* Username */}
-          <Link
-            className="text-xs text-gray-600 truncate hover:text-gray-800 transition-colors"
-            href={`/users/${track.user.id}`}
-          >
-            {track.user?.username ?? track.user?.full_name}
-          </Link>
-        </div>
+        {/* Artist */}
+        <Link
+          href={`/users/${track.user.id}`}
+          className="block text-sm text-gray-600 hover:text-gray-800 transition-colors duration-200"
+        >
+          {track.user?.username ?? track.user?.full_name}
+        </Link>
 
-        {/* Stats */}
-        <div className="mt-2 flex flex-col gap-2 text-xs text-gray-700">
-          {/* Reposts + Likes row */}
-          <div className="flex justify-between">
-            <div className="flex gap-1 items-center">
-              <Repeat className="w-4 h-4 text-gray-400" />
-              <span>{track.reposts_count?.toLocaleString("en-US")}</span>
+        {/* Clean Stats Bar */}
+        <div className="pt-2 border-t border-gray-100 space-y-2">
+          {/* First Row: Plays and Likes */}
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center gap-1.5">
+              <Play className="w-3 h-3 text-gray-300" fill="currentColor" />
+              <span className="font-medium">
+                {formatCount(track.playback_count)}
+              </span>
             </div>
 
-            <div className="flex gap-1 items-center">
-              <Heart className="w-4 h-4" fill="#99a1af" strokeWidth={0} />
-              <span>{track.favoritings_count?.toLocaleString("en-US")}</span>
+            <div className="flex items-center gap-1.5">
+              <Heart className="w-3 h-3 text-red-400" fill="currentColor" />
+              <span className="font-medium">
+                {formatCount(track.favoritings_count)}
+              </span>
             </div>
           </div>
 
-          {/* Plays + Comments row */}
-          <div className="flex justify-between">
-            <div className="flex gap-1 items-center">
-              <Play
-                className="w-4 h-4 text-gray-400"
-                fill="#99a1af"
-                strokeWidth={0}
-              />
-              <span>{track.playback_count?.toLocaleString("en-US")}</span>
+          {/* Second Row: Reposts and Comments */}
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center gap-1.5">
+              <Repeat className="w-3 h-3 text-green-500" />
+              <span className="font-medium">
+                {formatCount(track.reposts_count)}
+              </span>
             </div>
 
-            <div className="flex gap-1 items-center">
-              <MessageSquareText className="w-4 h-4 text-gray-400" />
-              <span>{track.comment_count?.toLocaleString("en-US")}</span>
+            <div className="flex items-center gap-1.5">
+              <MessageSquareText className="w-3 h-3 text-blue-400" />
+              <span className="font-medium">
+                {formatCount(track.comment_count)}
+              </span>
             </div>
           </div>
         </div>
