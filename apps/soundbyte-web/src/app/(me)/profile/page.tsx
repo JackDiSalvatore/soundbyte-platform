@@ -16,7 +16,7 @@ type SoundByteProfile = {
     plan: string;
     expiresAt?: Date;
   };
-  genres?: number[];
+  genres?: { id: number; name: string }[];
   socials?: {
     platform: string; // "instagram" | "twitter" | "facebook" | "tiktok" | "spotify" | "bandcamp" | "youtube"
     url: string;
@@ -33,19 +33,6 @@ const SOCIAL_PLATFORMS = [
   "youtube",
 ] as const;
 
-const GENRE_OPTIONS = [
-  { id: 1, name: "Rock" },
-  { id: 2, name: "Pop" },
-  { id: 3, name: "Hip Hop" },
-  { id: 4, name: "Electronic" },
-  { id: 5, name: "Jazz" },
-  { id: 6, name: "Classical" },
-  { id: 7, name: "Country" },
-  { id: 8, name: "R&B" },
-  { id: 9, name: "Folk" },
-  { id: 10, name: "Alternative" },
-];
-
 export default function ProfilePage() {
   const { session } = useAuth();
   const [genres, setGenres] = useState<
@@ -55,6 +42,7 @@ export default function ProfilePage() {
       }[]
     | null
   >(null);
+  const [providerId, setProviderId] = useState();
   const [profile, setProfile] = useState<SoundByteProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -67,9 +55,21 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     email: "",
     public: false,
-    genres: [] as number[],
+    genres: [] as { id: number; name: string }[],
     socials: [] as { platform: string; url: string }[],
   });
+
+  // Load providerId on mount
+  useEffect(() => {
+    if (!session) return;
+    StreamingProviderClient.profile({
+      provider: "soundcloud",
+      userId: session?.user.id,
+    }).then((res) => {
+      console.log("Provider User Id: ", res.id);
+      setProviderId(res.id);
+    });
+  }, [session]);
 
   // Load genres on mount
   useEffect(() => {
@@ -96,8 +96,6 @@ export default function ProfilePage() {
       userId: session.user.id,
     })
       .then((res) => {
-        console.log("Existing profile:");
-        console.log(res);
         setProfile(res);
         // Initialize form data
         setFormData({
@@ -123,13 +121,16 @@ export default function ProfilePage() {
     }));
   };
 
-  const handleGenreToggle = (genreId: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      genres: prev.genres.includes(genreId)
-        ? prev.genres.filter((id) => id !== genreId)
-        : [...prev.genres, genreId],
-    }));
+  const handleGenreToggle = (genre: { id: number; name: string }) => {
+    setFormData((prev) => {
+      const isSelected = prev.genres.some((g) => g.id === genre.id);
+      return {
+        ...prev,
+        genres: isSelected
+          ? prev.genres.filter((g) => g.id !== genre.id)
+          : [...prev.genres, genre],
+      };
+    });
   };
 
   const addSocialLink = () => {
@@ -161,25 +162,29 @@ export default function ProfilePage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile) return;
+    if (!session) return;
+    if (!providerId) return;
 
     setSaving(true);
     setMessage(null);
 
     try {
-      const updatedProfile: SoundByteProfile = {
-        ...profile,
+      // Build the profile object from form data
+      const profileData: SoundByteProfile = {
         profile: {
-          ...profile.profile,
+          userId: session.user.id,
+          providerId: providerId,
           email: formData.email,
+          verified: profile?.profile.verified,
           public: formData.public,
         },
+        subscription: profile?.subscription,
         genres: formData.genres,
         socials: formData.socials.filter((social) => social.url.trim() !== ""),
       };
 
-      await StreamingProviderClient.createSoundByteProfile(updatedProfile);
-      setProfile(updatedProfile);
+      await StreamingProviderClient.createSoundByteProfile(profileData);
+      setProfile(profileData);
       setMessage({ type: "success", text: "Profile updated successfully!" });
     } catch (error) {
       console.error("Failed to update profile:", error);
@@ -290,8 +295,8 @@ export default function ProfilePage() {
                 >
                   <input
                     type="checkbox"
-                    checked={formData.genres.includes(genre.id)}
-                    onChange={() => handleGenreToggle(genre.id)}
+                    checked={formData.genres.some((g) => g.id === genre.id)}
+                    onChange={() => handleGenreToggle(genre)}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <span className="text-sm text-gray-700">{genre.name}</span>

@@ -12,45 +12,48 @@ import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProfilesService } from '../services/profiles/profiles.service';
 import { CreateProfileWithRelationsDto } from '../dto/create-profile-with-relations.dto';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
+import { SocialLinksService } from '../services/profiles/social-links.service';
 
 @ApiTags('Profiles')
 @Controller('api/profiles')
 export class ProfilesController {
-  constructor(private readonly profilesService: ProfilesService) {}
+  constructor(
+    private readonly profilesService: ProfilesService,
+    private readonly socialLinksService: SocialLinksService,
+  ) {}
 
   @Get('/providerId/:providerId/profile')
   @ApiResponse({ status: 200, description: 'Profile' })
   getProfile(@Param('providerId') providerId: string, @Req() req: Request) {
     // TODO
-    return {};
+    return this.profilesService.findByProviderId(providerId);
   }
 
   @Get('/userId/:userId/profile')
   @ApiResponse({ status: 200, description: 'Profile' })
-  getProfileByUserId(@Param('userId') userId: string, @Req() req: Request) {
-    // TODO: mock data
+  async getProfileByUserId(
+    @Param('userId') userId: string,
+    @Req() req: Request,
+  ) {
+    const profile = await this.profilesService.findByUserId(userId);
+    const genres = await this.profilesService.findGenresByUserId(userId);
+    const subscriptions =
+      await this.profilesService.findSubscriptionsByUserId(userId);
+    const socials = await this.profilesService.findSocialLinksByUserId(userId);
+
     return {
-      profile: {
-        userId: 'user_123',
-        providerId: 'soundcloud_abc',
-        email: 'user@example.com',
-        verified: true,
-        public: true,
-      },
-      subscription: {
-        plan: 'pro',
-        membership: 'monthly',
-        expiresAt: '2025-12-31T00:00:00.000Z',
-      },
-      genres: [1, 3, 5],
-      socials: [
-        { platform: 'twitter', url: 'https://twitter.com/user' },
-        { platform: 'spotify', url: 'https://open.spotify.com/artist/123' },
-      ],
+      profile,
+      subscriptions,
+      genres,
+      socials,
     };
   }
+
   @Post()
   create(@Body() dto: CreateProfileWithRelationsDto) {
+    console.log('Creating Profile with');
+    console.log(dto);
+
     return this.profilesService.createWithRelations(dto);
   }
 

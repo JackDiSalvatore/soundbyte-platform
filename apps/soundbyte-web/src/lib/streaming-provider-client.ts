@@ -398,9 +398,9 @@ export class StreamingProviderClient {
     }
   }
 
-  /**
+  /***********************************************************************************
    * App functions
-   */
+   **********************************************************************************/
 
   /**
    * Get genres
@@ -471,17 +471,28 @@ export class StreamingProviderClient {
       plan: string;
       expiresAt?: Date;
     };
-    genres?: number[];
+    genres?: { id: number; name: string }[];
     socials?: {
       platform: string; // "instagram" | "twitter" | "facebook" | "tiktok" | "spotify" | "bandcamp" | "youtube"
       url: string;
     }[];
   }): Promise<any> {
+    const { profile, subscription, genres, socials } = props;
     try {
+      console.log("props:", props);
+
       const res = await axios.request({
         method: "post",
         url: `${this.baseUrl}/api/profiles`,
-        data: {},
+        data: {
+          profile,
+          subscription,
+          socials,
+          genres:
+            genres?.map((id, name) => {
+              return name;
+            }) ?? [],
+        },
       });
 
       return res.data;

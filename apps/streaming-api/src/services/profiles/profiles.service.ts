@@ -1,7 +1,14 @@
 import { db } from '../../db/db';
-import { planEnum, profiles } from '../../db/schema/soundbyte-profiles-schema';
+import {
+  genres,
+  planEnum,
+  profileGenres,
+  profiles,
+  socialLinks,
+  subscriptions,
+} from '../../db/schema/soundbyte-profiles-schema';
 import { eq } from 'drizzle-orm';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { SubscriptionsService } from './subscriptions.service';
 import { GenresService } from './genres.service';
@@ -16,6 +23,32 @@ export class ProfilesService {
     private readonly genresService: GenresService,
     private readonly socialLinksService: SocialLinksService,
   ) {}
+
+  async findByUserId(userId: string) {
+    const [profile] = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.userId, userId));
+
+    if (!profile) {
+      throw new NotFoundException(`Profile with userId "${userId}" not found`);
+    }
+    return profile;
+  }
+
+  async findByProviderId(providerId: string) {
+    const [profile] = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.providerId, providerId));
+
+    if (!profile) {
+      throw new NotFoundException(
+        `Profile with providerId "${providerId}" not found`,
+      );
+    }
+    return profile;
+  }
 
   async createWithRelations(dto: {
     profile: CreateProfileDto;
@@ -100,10 +133,58 @@ export class ProfilesService {
   }
 
   async remove(id: number) {
+    // Delete related genres
+    await db.delete(profileGenres).where(eq(profileGenres.profileId, id));
+
+    // Delete related social links
+    await db.delete(socialLinks).where(eq(socialLinks.profileId, id));
+
+    // delete the profile
     const [profile] = await db
       .delete(profiles)
       .where(eq(profiles.id, id))
       .returning();
     return profile;
+  }
+
+  private async getProfileIdByUserId(userId: string): Promise<number> {
+    const [profile] = await db
+      .select({ id: profiles.id })
+      .from(profiles)
+      .where(eq(profiles.userId, userId));
+
+    if (!profile) {
+      throw new NotFoundException(`Profile with userId "${userId}" not found`);
+    }
+
+    return profile.id;
+  }
+
+  async findGenresByUserId(userId: string) {
+    const profileId = await this.getProfileIdByUserId(userId);
+
+    return db
+      .select({ id: genres.id, name: genres.name })
+      .from(profileGenres)
+      .innerJoin(genres, eq(profileGenres.genreId, genres.id))
+      .where(eq(profileGenres.profileId, profileId));
+  }
+
+  async findSocialLinksByUserId(userId: string) {
+    const profileId = await this.getProfileIdByUserId(userId);
+
+    return db
+      .select()
+      .from(socialLinks)
+      .where(eq(socialLinks.profileId, profileId));
+  }
+
+  async findSubscriptionsByUserId(userId: string) {
+    const profileId = await this.getProfileIdByUserId(userId);
+
+    return db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.profileId, profileId));
   }
 }
