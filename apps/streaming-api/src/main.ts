@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import session from 'express-session';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -42,6 +43,14 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed request headers
     credentials: true, // Allow sending cookies and authentication headers
   });
+
+  // Enable transformer
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true, // <-- this makes @Expose work
+      whitelist: true, // strips out unknown props
+    }),
+  );
 
   // Set version
   // app.setGlobalPrefix('api/v1');

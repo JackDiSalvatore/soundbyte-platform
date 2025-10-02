@@ -1,7 +1,6 @@
 import { db } from '../../db/db';
 import {
   genres,
-  planEnum,
   profileGenres,
   profiles,
   socialLinks,
@@ -13,8 +12,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { SubscriptionsService } from './subscriptions.service';
 import { GenresService } from './genres.service';
 import { SocialLinksService } from './social-links.service';
-import { CreateProfileDto } from '../../dto/create-profile.dto';
-import { UpdateProfileDto } from '../../dto/update-profile.dto';
+import { CreateProfileDto } from '../../dto/profiles/create-profile.dto';
+import { UpdateProfileDto } from '../../dto/profiles/update-profile.dto';
+import { UpsertSubscriptionDto } from '../../dto/profiles/upsert-subscription.dto';
 
 @Injectable()
 export class ProfilesService {
@@ -59,12 +59,14 @@ export class ProfilesService {
     genres?: number[];
     socials?: { platform: string; url: string }[];
   }) {
+    console.log('Profile DTO after transform:', dto);
+
     // 1. Create profile
     const [profile] = await db
       .insert(profiles)
       .values({
-        userId: dto.profile.userId,
-        providerId: dto.profile.providerId,
+        userId: dto.profile.user_id,
+        providerId: dto.profile.provider_id,
         email: dto.profile.email,
         verified: dto.profile.verified ?? false,
         public: dto.profile.public ?? true,
@@ -110,7 +112,7 @@ export class ProfilesService {
             | 'youtube'
             | 'bandcamp',
           url: social.url,
-          profileId: profile.id,
+          profile_id: profile.id,
         });
       }
     }
@@ -160,6 +162,8 @@ export class ProfilesService {
     return profile.id;
   }
 
+  /** ---------------- Genres ---------------- */
+
   async findGenresByUserId(userId: string) {
     const profileId = await this.getProfileIdByUserId(userId);
 
@@ -170,6 +174,32 @@ export class ProfilesService {
       .where(eq(profileGenres.profileId, profileId));
   }
 
+  async updateGenres(userId: string, genreIds: number[]) {
+    const profileId = await this.getProfileIdByUserId(userId);
+
+    // 1. Remove existing genres
+    await db
+      .delete(profileGenres)
+      .where(eq(profileGenres.profileId, profileId));
+
+    // 2. Insert new genres (type-safe)
+    if (genreIds.length > 0) {
+      await db.insert(profileGenres).values(
+        genreIds.map(
+          (gid) =>
+            ({
+              profileId,
+              genreId: gid,
+            }) satisfies typeof profileGenres.$inferInsert,
+        ),
+      );
+    }
+
+    return this.findGenresByUserId(userId);
+  }
+
+  /** ---------------- Social Links ---------------- */
+
   async findSocialLinksByUserId(userId: string) {
     const profileId = await this.getProfileIdByUserId(userId);
 
@@ -179,12 +209,90 @@ export class ProfilesService {
       .where(eq(socialLinks.profileId, profileId));
   }
 
-  async findSubscriptionsByUserId(userId: string) {
+  async updateSocialLinks(
+    userId: string,
+    links: Record<string, string | null>,
+  ) {
     const profileId = await this.getProfileIdByUserId(userId);
 
-    return db
+    // First, delete old links
+    await db.delete(socialLinks).where(eq(socialLinks.profileId, profileId));
+
+    // Then, insert new links (only non-null values)
+    const rows = Object.entries(links)
+      .filter(([, url]) => url) // skip nulls
+      .map(
+        ([platform, url]) =>
+          ({
+            profileId,
+            platform: platform as (typeof socialLinks.$inferInsert)['platform'],
+            url: url as string,
+          }) satisfies typeof socialLinks.$inferInsert,
+      );
+
+    if (rows.length > 0) {
+      await db.insert(socialLinks).values(rows);
+    }
+
+    return this.findSocialLinksByUserId(userId);
+  }
+
+  /** ---------------- Subscriptions ---------------- */
+
+  async findSubscriptionByUserId(userId: string) {
+    const profileId = await this.getProfileIdByUserId(userId);
+
+    const [subscription] = await db
       .select()
       .from(subscriptions)
       .where(eq(subscriptions.profileId, profileId));
+
+    return subscription ?? null;
+  }
+
+  async upsertSubscription(userId: string, data: UpsertSubscriptionDto) {
+    const profileId = await this.getProfileIdByUserId(userId);
+
+    const [existing] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.profileId, profileId));
+
+    if (existing) {
+      await db
+        .update(subscriptions)
+        .set(data)
+        .where(eq(subscriptions.profileId, profileId));
+    } else {
+      await db.insert(subscriptions).values({
+        profileId,
+        ...data,
+      } satisfies typeof subscriptions.$inferInsert);
+    }
+
+    return this.findSubscriptionByUserId(userId);
+  }
+
+  async updateSubscription(userId: string, data: UpsertSubscriptionDto) {
+    const profileId = await this.getProfileIdByUserId(userId);
+
+    const [existing] = await db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.profileId, profileId));
+
+    if (existing) {
+      await db
+        .update(subscriptions)
+        .set(data)
+        .where(eq(subscriptions.profileId, profileId));
+    } else {
+      await db.insert(subscriptions).values({
+        profileId,
+        ...data,
+      } satisfies typeof subscriptions.$inferInsert);
+    }
+
+    return this.findSubscriptionByUserId(userId);
   }
 }

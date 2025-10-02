@@ -79,9 +79,10 @@ export const profileGenres = pgTable(
 export const subscriptions = pgTable('subscriptions', {
   id: serial('id').primaryKey(),
   profileId: integer('profile_id')
-    .references(() => profiles.id)
-    .notNull(),
-  plan: planEnum('plan').notNull(),
+    .notNull()
+    .references(() => profiles.id, { onDelete: 'cascade' })
+    .unique(), // ✅ only one subscription per profile
+  plan: planEnum('plan').notNull().default('free'),
   startedAt: timestamp('started_at').defaultNow().notNull(),
   expiresAt: timestamp('expires_at'),
 });

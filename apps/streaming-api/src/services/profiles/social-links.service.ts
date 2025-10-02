@@ -1,19 +1,20 @@
 import { eq } from 'drizzle-orm';
 import { db } from '../../db/db';
 import { socialLinks } from '../../db/schema/soundbyte-profiles-schema';
-import type { platformEnum } from '../../db/schema/soundbyte-profiles-schema';
 import { Injectable } from '@nestjs/common';
-
-export type CreateSocialLinkDto = {
-  profileId: number;
-  platform: (typeof platformEnum.enumValues)[number];
-  url: string;
-};
+import { CreateSocialLinkDto } from '../../dto/profiles/create-social-link.dto';
 
 @Injectable()
 export class SocialLinksService {
   async create(dto: CreateSocialLinkDto) {
-    const [link] = await db.insert(socialLinks).values(dto).returning();
+    const [link] = await db
+      .insert(socialLinks)
+      .values({
+        profileId: Number(dto.profile_id),
+        platform: dto.platform,
+        url: dto.url,
+      })
+      .returning();
     return link;
   }
 
