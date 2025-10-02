@@ -31,7 +31,12 @@ export default function Page() {
 
   // Check if streaming provider is already connected
   useEffect(() => {
-    if (streamingCredentials) setConnectedStreamingProviders(["soundcloud"]);
+    console.log("streamingCredentials: ", streamingCredentials);
+    if (
+      streamingCredentials?.provider === "soundcloud" &&
+      streamingCredentials?.accessToken
+    )
+      setConnectedStreamingProviders(["soundcloud"]);
   }, [streamingCredentials]);
 
   // Handle OAuth return on component mount
