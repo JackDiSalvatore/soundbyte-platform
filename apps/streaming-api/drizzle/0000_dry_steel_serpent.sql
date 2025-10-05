@@ -1,5 +1,20 @@
 CREATE TYPE "public"."plan" AS ENUM('free', 'pro');--> statement-breakpoint
 CREATE TYPE "public"."platform" AS ENUM('instagram', 'twitter', 'facebook', 'tiktok', 'spotify', 'bandcamp', 'youtube');--> statement-breakpoint
+CREATE TABLE "credentials" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"user_id" text NOT NULL,
+	"provider" text NOT NULL,
+	"access_token" text NOT NULL,
+	"refresh_token" text NOT NULL,
+	"scope" text NOT NULL,
+	"token_type" text NOT NULL,
+	"expires_in" integer NOT NULL,
+	"expires_at" timestamp NOT NULL,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL,
+	CONSTRAINT "credentials_user_id_provider_unique" UNIQUE("user_id","provider")
+);
+--> statement-breakpoint
 CREATE TABLE "genres" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
@@ -36,12 +51,13 @@ CREATE TABLE "social_links" (
 CREATE TABLE "subscriptions" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"profile_id" integer NOT NULL,
-	"plan" "plan" NOT NULL,
+	"plan" "plan" DEFAULT 'free' NOT NULL,
 	"started_at" timestamp DEFAULT now() NOT NULL,
-	"expires_at" timestamp
+	"expires_at" timestamp,
+	CONSTRAINT "subscriptions_profile_id_unique" UNIQUE("profile_id")
 );
 --> statement-breakpoint
 ALTER TABLE "profile_genres" ADD CONSTRAINT "profile_genres_profile_id_profiles_id_fk" FOREIGN KEY ("profile_id") REFERENCES "public"."profiles"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "profile_genres" ADD CONSTRAINT "profile_genres_genre_id_genres_id_fk" FOREIGN KEY ("genre_id") REFERENCES "public"."genres"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "social_links" ADD CONSTRAINT "social_links_profile_id_profiles_id_fk" FOREIGN KEY ("profile_id") REFERENCES "public"."profiles"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_profile_id_profiles_id_fk" FOREIGN KEY ("profile_id") REFERENCES "public"."profiles"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "subscriptions" ADD CONSTRAINT "subscriptions_profile_id_profiles_id_fk" FOREIGN KEY ("profile_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;
