@@ -1,8 +1,11 @@
 import { env } from "@/lib/environment";
-import { SoundByteGenre } from "@/types/soundbyte-genre";
-import { SoundByteProfile } from "@/types/soundbyte-profile";
-import { SoundByteSocialLink } from "@/types/soundbyte-social-link";
-import { SoundByteSubscription } from "@/types/soundbyte-subscription";
+import type {
+  SoundByteGenre,
+  SoundByteProfile,
+  SoundByteSocialLink,
+  SoundByteSubscription,
+} from "@/types/soundbyte.types";
+
 import axios from "axios";
 
 export class SoundByteProfileClient {
@@ -28,6 +31,11 @@ export class SoundByteProfileClient {
   }
 
   /**
+   * Create users genres
+   */
+  // TODO
+
+  /**
    * Get users genres
    */
   static async getSoundByteUsersGenres({
@@ -46,6 +54,40 @@ export class SoundByteProfileClient {
       throw error;
     }
   }
+
+  /**
+   * Update users genres
+   */
+  static async updateSoundByteUsersGenres({
+    userId,
+    genreIds,
+  }: {
+    userId: string;
+    genreIds: number[];
+  }): Promise<
+    { id: string; profileId: string; platform: string; url: string }[]
+  > {
+    try {
+      const res = await axios.patch(
+        `${this.baseUrl}/api/profiles/userId/${userId}/genres`,
+        {
+          data: {
+            genreIds,
+          },
+        }
+      );
+
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to update users genres:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create users social links
+   */
+  // TODO
 
   /**
    * Get users social links
@@ -68,6 +110,40 @@ export class SoundByteProfileClient {
   }
 
   /**
+   * Update users social links
+   */
+  static async updateSoundByteUsersSocialLinks({
+    userId,
+    links,
+  }: {
+    userId: string;
+    links: Record<string, string | null>[];
+  }): Promise<
+    { id: string; profileId: string; platform: string; url: string }[]
+  > {
+    try {
+      const res = await axios.patch(
+        `${this.baseUrl}/api/profiles/userId/${userId}/social-links`,
+        {
+          data: {
+            links,
+          },
+        }
+      );
+
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to update users social links:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create users subscription
+   */
+  // TODO
+
+  /**
    * Get users subscription info
    */
   static async getSoundByteUsersSubscription({
@@ -83,6 +159,33 @@ export class SoundByteProfileClient {
       return res.data;
     } catch (error) {
       console.error(`Failed to get users subscription:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update users subscription
+   */
+  static async updateSoundByteUsersSubscription({
+    userId,
+    plan,
+  }: {
+    userId: string;
+    plan: string;
+  }): Promise<SoundByteSubscription[]> {
+    try {
+      const res = await axios.patch(
+        `${this.baseUrl}/api/profiles/userId/${userId}/subscription`,
+        {
+          data: {
+            plan: plan,
+          },
+        }
+      );
+
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to update users subscription:`, error);
       throw error;
     }
   }
@@ -130,7 +233,12 @@ export class SoundByteProfileClient {
   /**
    * Create users SoundByte profile
    */
-  static async createSoundByteProfile(props: {
+  // TODO
+
+  /**
+   * Create users SoundByte profile with relations
+   */
+  static async createSoundByteUsersProfileWithRelations(props: {
     profile: SoundByteProfile;
     subscription?: SoundByteSubscription;
     genres?: SoundByteGenre[];
@@ -164,45 +272,44 @@ export class SoundByteProfileClient {
   /**
    * Update users SoundByte profile
    */
-  static async updateSoundByteProfile(props: {
-    profile: {
-      userId: string;
-      providerId: string;
-      email: string;
-      verified?: boolean;
-      public?: boolean;
-    };
-    subscription?: {
-      plan: string;
-      expiresAt?: Date;
-    };
-    genres?: { id: number; name: string }[];
-    socials?: {
-      platform: string; // "instagram" | "twitter" | "facebook" | "tiktok" | "spotify" | "bandcamp" | "youtube"
-      url: string;
-    }[];
+  static async updateSoundByteUsersProfile({
+    userId,
+    profile,
+  }: {
+    userId: string;
+    profile: SoundByteProfile;
   }): Promise<any> {
-    const { profile, subscription, genres, socials } = props;
     try {
-      console.log("props:", props);
-
       const res = await axios.request({
         method: "patch",
-        url: `${this.baseUrl}/api/profiles/${props.profile.userId}`,
-        data: {
-          profile,
-          subscription,
-          socials,
-          genres:
-            genres?.map((id, name) => {
-              return name;
-            }) ?? [],
-        },
+        url: `${this.baseUrl}/api/profiles/${userId}`,
+        data: profile,
       });
 
       return res.data;
     } catch (error) {
       console.error(`Failed to create users profile:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete users SoundByte profile
+   */
+  static async deleteSoundByteUsersProfile({
+    userId,
+  }: {
+    userId: string;
+  }): Promise<any> {
+    try {
+      const res = await axios.request({
+        method: "delete",
+        url: `${this.baseUrl}/api/profiles/${userId}`,
+      });
+
+      return res.data;
+    } catch (error) {
+      console.error(`Failed to delete users profile:`, error);
       throw error;
     }
   }
