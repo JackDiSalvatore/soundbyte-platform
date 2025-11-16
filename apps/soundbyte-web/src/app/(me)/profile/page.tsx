@@ -65,7 +65,7 @@ export default function ProfilePage() {
           provider: "soundcloud",
           userId: session.user.id,
         });
-        setProviderId(providerRes.id);
+        setProviderId(String(providerRes.id));
 
         const genresRes = await SoundByteProfileClient.getGenres();
         setAvailableGenres(genresRes);
@@ -157,7 +157,6 @@ export default function ProfilePage() {
     try {
       if (!profile) {
         const newProfile: SoundByteProfile = {
-          id: 0,
           user_id: session.user.id,
           provider_id: providerId,
           email: formData.email,
@@ -165,21 +164,29 @@ export default function ProfilePage() {
           public: formData.public,
         };
 
-        const newSocials: SoundByteSocialLink[] = formData.socials
-          .filter((social) => social.url.trim() !== "")
-          .map((social) => ({
-            id: 0,
-            profile_id: 0,
-            platform: social.platform as any,
-            url: social.url,
-          }));
+        // console.log("You are submitting profile: ", newProfile);
+        // const profile =
+        //   await SoundByteProfileClient.createSoundByteUsersProfile(newProfile);
 
-        const newSubscription: SoundByteSubscription = {
-          id: 0,
-          profile_id: 0,
-          plan: formData.subscriptionPlan,
-          started_at: new Date(),
-        };
+        console.log("You are submitting genres: ", formData.selectedGenres);
+        const genres = await SoundByteProfileClient.updateSoundByteUsersGenres({
+          userId: session.user.id,
+          genreIds: formData.selectedGenres.map((g) => g.id),
+        });
+
+        // const newSocials: SoundByteSocialLink[] = formData.socials
+        //   .filter((social) => social.url.trim() !== "")
+        //   .map((social) => ({
+        //     profile_id: 0, // TODO
+        //     platform: social.platform as any,
+        //     url: social.url,
+        //   }));
+
+        // const newSubscription: SoundByteSubscription = {
+        //   profile_id: 0, // TODO
+        //   plan: formData.subscriptionPlan,
+        //   started_at: new Date(),
+        // };
 
         // await SoundByteProfileClient.createSoundByteUsersProfileWithRelations({
         //   profile: newProfile,
@@ -188,10 +195,8 @@ export default function ProfilePage() {
         //   subscription: newSubscription,
         // });
 
-        console.log("You are submitting profile: ", newProfile);
-        console.log("You are submitting genres: ", formData.selectedGenres);
-        console.log("You are submitting socials: ", newSocials);
-        console.log("You are submitting subscription: ", newSubscription);
+        // console.log("You are submitting socials: ", newSocials);
+        // console.log("You are submitting subscription: ", newSubscription);
 
         setMessage({ type: "success", text: "Profile created successfully!" });
       } else {

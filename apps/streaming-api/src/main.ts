@@ -45,12 +45,12 @@ async function bootstrap() {
   });
 
   // Enable transformer
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true, // <-- this makes @Expose work
-      whitelist: true, // strips out unknown props
-    }),
-  );
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     transform: true, // <-- this makes @Expose work
+  //     whitelist: true, // strips out unknown props
+  //   }),
+  // );
 
   // Set version
   // app.setGlobalPrefix('api/v1');

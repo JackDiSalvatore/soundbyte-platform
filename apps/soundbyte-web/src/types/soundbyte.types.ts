@@ -29,7 +29,7 @@ export type SoundByteSocialLink = {
 };
 
 export type SoundByteSubscription = {
-  id: number;
+  id?: number | undefined;
   profile_id: number; // FK
   plan: "free" | "pro";
   started_at?: Date;

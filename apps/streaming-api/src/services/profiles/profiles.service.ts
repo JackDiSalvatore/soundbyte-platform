@@ -9,12 +9,16 @@ import {
 import { eq } from 'drizzle-orm';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { SubscriptionsService } from './subscriptions.service';
+import {
+  CreateSubscriptionDto,
+  SubscriptionsService,
+} from './subscriptions.service';
 import { GenresService } from './genres.service';
 import { SocialLinksService } from './social-links.service';
 import { CreateProfileDto } from '../../dto/profiles/create-profile.dto';
 import { UpdateProfileDto } from '../../dto/profiles/update-profile.dto';
 import { UpsertSubscriptionDto } from '../../dto/profiles/upsert-subscription.dto';
+import { CreateSocialLinkDto } from '../../dto/profiles/create-social-link.dto';
 
 @Injectable()
 export class ProfilesService {
@@ -50,75 +54,90 @@ export class ProfilesService {
     return profile;
   }
 
-  async createWithRelations(dto: {
-    profile: CreateProfileDto;
-    subscription?: {
-      plan: 'free' | 'pro';
-      expiresAt?: Date;
-    };
-    genres?: number[];
-    socials?: { platform: string; url: string }[];
-  }) {
-    console.log('Profile DTO after transform:', dto);
-
-    // 1. Create profile
+  async create(dto: CreateProfileDto) {
     const [profile] = await db
       .insert(profiles)
       .values({
-        userId: dto.profile.user_id,
-        providerId: dto.profile.provider_id,
-        email: dto.profile.email,
-        verified: dto.profile.verified ?? false,
-        public: dto.profile.public ?? true,
+        userId: dto.user_id,
+        providerId: dto.provider_id,
+        email: dto.email,
+        verified: dto.verified ?? false,
+        public: dto.public ?? true,
       })
       .returning();
 
-    // 2. Optional subscription
-    if (dto.subscription) {
-      await this.subscriptionsService.create({
-        ...dto.subscription,
-        profileId: profile.id,
-      });
-    }
-
-    // 3. Optional genres
-    if (dto.genres?.length) {
-      for (const genreId of dto.genres) {
-        await this.genresService.addToProfile(profile.id, genreId);
-      }
-    }
-
-    // 4. Optional social links
-    if (dto.socials?.length) {
-      for (const social of dto.socials) {
-        if (
-          ![
-            'facebook',
-            'twitter',
-            'tiktok',
-            'instagram',
-            'youtube',
-            'bandcamp',
-          ].includes(social.platform)
-        )
-          throw new Error('invalid social link');
-
-        await this.socialLinksService.create({
-          platform: social.platform as
-            | 'facebook'
-            | 'twitter'
-            | 'tiktok'
-            | 'instagram'
-            | 'youtube'
-            | 'bandcamp',
-          url: social.url,
-          profile_id: profile.id,
-        });
-      }
-    }
-
     return profile;
   }
+
+  // async createWithRelations(dto: {
+  //   profile: CreateProfileDto;
+  //   subscription?: {
+  //     plan: 'free' | 'pro';
+  //     expiresAt?: Date;
+  //   };
+  //   genres?: number[];
+  //   socials?: { platform: string; url: string }[];
+  // }) {
+  //   console.log('Profile DTO after transform:', dto);
+
+  //   // 1. Create profile
+  //   const [profile] = await db
+  //     .insert(profiles)
+  //     .values({
+  //       userId: dto.profile.user_id,
+  //       providerId: dto.profile.provider_id,
+  //       email: dto.profile.email,
+  //       verified: dto.profile.verified ?? false,
+  //       public: dto.profile.public ?? true,
+  //     })
+  //     .returning();
+
+  //   // 2. Optional subscription
+  //   if (dto.subscription) {
+  //     await this.subscriptionsService.create({
+  //       ...dto.subscription,
+  //       profileId: profile.id,
+  //     });
+  //   }
+
+  //   // 3. Optional genres
+  //   if (dto.genres?.length) {
+  //     for (const genreId of dto.genres) {
+  //       await this.genresService.addToProfile(profile.id, genreId);
+  //     }
+  //   }
+
+  //   // 4. Optional social links
+  //   if (dto.socials?.length) {
+  //     for (const social of dto.socials) {
+  //       if (
+  //         ![
+  //           'facebook',
+  //           'twitter',
+  //           'tiktok',
+  //           'instagram',
+  //           'youtube',
+  //           'bandcamp',
+  //         ].includes(social.platform)
+  //       )
+  //         throw new Error('invalid social link');
+
+  //       await this.socialLinksService.create({
+  //         platform: social.platform as
+  //           | 'facebook'
+  //           | 'twitter'
+  //           | 'tiktok'
+  //           | 'instagram'
+  //           | 'youtube'
+  //           | 'bandcamp',
+  //         url: social.url,
+  //         profile_id: profile.id,
+  //       });
+  //     }
+  //   }
+
+  //   return profile;
+  // }
 
   async update(id: number, dto: UpdateProfileDto) {
     const [profile] = await db
@@ -174,6 +193,12 @@ export class ProfilesService {
       .where(eq(profileGenres.profileId, profileId));
   }
 
+  // async addGenres(profileId: number, genreIds: number[]) {
+  //   for (const genreId of genreIds) {
+  //     await this.genresService.addToProfile(profileId, genreId);
+  //   }
+  // }
+
   async updateGenres(userId: string, genreIds: number[]) {
     const profileId = await this.getProfileIdByUserId(userId);
 
@@ -184,6 +209,8 @@ export class ProfilesService {
 
     // 2. Insert new genres (type-safe)
     if (genreIds.length > 0) {
+      console.log('Inserting genres');
+
       await db.insert(profileGenres).values(
         genreIds.map(
           (gid) =>
@@ -208,6 +235,33 @@ export class ProfilesService {
       .from(socialLinks)
       .where(eq(socialLinks.profileId, profileId));
   }
+
+  // async addSocialLinks(profileId: number, socials: CreateSocialLinkDto[]) {
+  //   for (const social of socials) {
+  //     if (
+  //       ![
+  //         'facebook',
+  //         'twitter',
+  //         'tiktok',
+  //         'instagram',
+  //         'youtube',
+  //         'bandcamp',
+  //       ].includes(social.platform)
+  //     )
+  //       throw new Error('invalid social link');
+  //     await this.socialLinksService.create({
+  //       platform: social.platform as
+  //         | 'facebook'
+  //         | 'twitter'
+  //         | 'tiktok'
+  //         | 'instagram'
+  //         | 'youtube'
+  //         | 'bandcamp',
+  //       url: social.url,
+  //       profile_id: profileId,
+  //     });
+  //   }
+  // }
 
   async updateSocialLinks(
     userId: string,
@@ -249,6 +303,16 @@ export class ProfilesService {
 
     return subscription ?? null;
   }
+
+  // async addSubscription(
+  //   profileId: number,
+  //   subscription: CreateSubscriptionDto,
+  // ) {
+  //   await this.subscriptionsService.create({
+  //     ...subscription,
+  //     profileId: profileId,
+  //   });
+  // }
 
   async upsertSubscription(userId: string, data: UpsertSubscriptionDto) {
     const profileId = await this.getProfileIdByUserId(userId);
